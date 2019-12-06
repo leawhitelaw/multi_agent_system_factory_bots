@@ -1,4 +1,4 @@
-package multi_agent_systems_coursework.supply_chain;
+package smartphone_manufacturing.supply_chain;
 
 import java.util.ArrayList;
 import jade.core.AID;
@@ -11,7 +11,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
 public class TickerAgent extends Agent {
-	public static final int num_days = 30;
+	public static final int num_days = 100;
 	
 	@Override
 	protected void setup() {
@@ -47,6 +47,7 @@ public class TickerAgent extends Agent {
 	
 	public class SynchAgentsBehaviour extends Behaviour{
 		
+		private static final long serialVersionUID = 1L;
 		private int step = 0;
 		private int numReceivedMsgs = 0; //no of finished responses from other agents
 		private int day = 0;
@@ -69,6 +70,10 @@ public class TickerAgent extends Agent {
 				ServiceDescription customerSd = new ServiceDescription();
 				customerSd.setType("customer-agent");
 				customerTemplate.addServices(customerSd);
+				DFAgentDescription manufacturerTemplate = new DFAgentDescription();
+				ServiceDescription manufacturerSd = new ServiceDescription();
+				manufacturerSd.setType("manufacturer-agent");
+				manufacturerTemplate.addServices(manufacturerSd);
 				try {
 					simulationAgents.clear();
 					//search for supply agents
@@ -82,6 +87,12 @@ public class TickerAgent extends Agent {
 					for(int i=0; i<customerAgents.length; i++) {
 						simulationAgents.add(customerAgents[i].getName()); //this is the customer agents AID
 						System.out.println(customerAgents[i].getName());
+					}
+					//search for manufacturer agents
+					DFAgentDescription[] manufacturerAgents = DFService.search(myAgent, manufacturerTemplate);
+					for(int i=0; i<manufacturerAgents.length; i++) {
+						simulationAgents.add(manufacturerAgents[i].getName()); //this is the manufacturer agents AID
+						System.out.println(manufacturerAgents[i].getName());
 					}
 				}
 				catch(FIPAException e) {
@@ -121,6 +132,7 @@ public class TickerAgent extends Agent {
 		@Override
 		public void reset() {
 			step = 0;
+			//simulationAgents.clear();
 			numReceivedMsgs = 0;
 		}
 		

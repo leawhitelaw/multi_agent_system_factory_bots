@@ -1,4 +1,4 @@
-package multi_agent_systems_coursework.supply_chain;
+package smartphone_manufacturing.supply_chain;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
@@ -52,6 +52,8 @@ public class CustomerAgent extends Agent {
 	}
 	
 	public class TickerWaitBehaviour extends CyclicBehaviour{
+		private static final long serialVersionUID = 1L;
+
 		//behaviour to wait for new day
 		public TickerWaitBehaviour(Agent a) {
 			super(a);

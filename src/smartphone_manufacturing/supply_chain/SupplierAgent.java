@@ -1,4 +1,4 @@
-package multi_agent_systems_coursework.supply_chain;
+package smartphone_manufacturing.supply_chain;
 
 import java.util.ArrayList;
 
@@ -58,7 +58,7 @@ public class SupplierAgent extends Agent{
 		@Override
 		public void action() {
 			//wait for new day 
-			MessageTemplate mt = MessageTemplate.or(MessageTemplate.MatchContent("new day"),
+			MessageTemplate mt = MessageTemplate.or(MessageTemplate.MatchContent("new-day"),
 					MessageTemplate.MatchContent("terminate"));
 			ACLMessage msg = myAgent.receive(mt);
 			if(msg != null) {
