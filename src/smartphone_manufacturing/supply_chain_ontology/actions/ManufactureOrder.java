@@ -1,14 +1,17 @@
 package smartphone_manufacturing.supply_chain_ontology.actions;
+import jade.content.AgentAction;
 import jade.content.onto.annotations.Slot;
 import jade.core.AID;
-import smartphone_manufacturing.supply_chain_ontology.concepts.Order;
+import smartphone_manufacturing.supply_chain_ontology.concepts.CustomerOrder;
 
-public class ManufactureOrder {
+public class ManufactureOrder implements AgentAction {
+
+	private static final long serialVersionUID = 1L;
 
 	public ManufactureOrder() {}
 	
 	private AID buyer;
-	private Order order;
+	private CustomerOrder customerOrder;
 	
 	@Slot(mandatory = true)
 	public AID getBuyer() {
@@ -20,12 +23,12 @@ public class ManufactureOrder {
 	}
 	
 	@Slot(mandatory = true)
-	public Order getOrder() {
-		return order;
+	public CustomerOrder getOrder() {
+		return customerOrder;
 	}
 	
-	public void setOrder(Order order) {
-		this.order = order;
+	public void setOrder(CustomerOrder customerOrder) {
+		this.customerOrder = customerOrder;
 	}
 
 }

@@ -7,14 +7,15 @@ import jade.content.onto.annotations.Slot;
  * Concept that defines an order from a customer to a manufacturer
  * */
 
-public class Order implements Concept{
+public class CustomerOrder implements Concept{
 	public static final long serialVersionUID = 1L;
 	
 	private int orderID;
 	private SmartPhone phone;
 	private int quantity;
-	private double price;
+	private int price;
 	private int daysToDeadline;
+	private int perDayPenalty;
 	
 	public int getOrderID() {
 		return orderID;
@@ -47,7 +48,7 @@ public class Order implements Concept{
 		return price;
 	}
 	
-	public void setPrice(double price) {
+	public void setPrice(int price) {
 		this.price = price;
 	}
 	
@@ -60,6 +61,15 @@ public class Order implements Concept{
 		this.daysToDeadline = days;
 	}
 	
+	@Slot(mandatory = true)
+	public int getPerDayPenalty() {
+		return perDayPenalty;
+	}
+
+	public void setPerDayPenalty(int perDayPenalty) {
+		this.perDayPenalty = perDayPenalty;
+	}
+
 	@Override
 	  public String toString() {
 	    String phoneString = phone.toString();

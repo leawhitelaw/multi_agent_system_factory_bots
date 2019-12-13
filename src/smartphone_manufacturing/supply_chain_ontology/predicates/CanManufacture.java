@@ -1,15 +1,15 @@
 package smartphone_manufacturing.supply_chain_ontology.predicates;
 
+import jade.core.AID;
 import jade.content.Predicate;
 import jade.content.onto.annotations.Slot;
-import jade.core.AID;
 import smartphone_manufacturing.supply_chain_ontology.concepts.CustomerOrder;
 
 /*
- * Predicate that order is shipped from manufacturer to customer
+ * Predicate for customer to query if manufacturer can manufacture the order
  * */
 
-public class OrderShipped implements Predicate {
+public class CanManufacture implements Predicate {
 	
 	private static final long serialVersionUID = 1L;
 	private AID manufacturer;
@@ -28,10 +28,8 @@ public class OrderShipped implements Predicate {
 	public CustomerOrder getOrder() {
 		return customerOrder;
 	}
-	
 	public void setOrder(CustomerOrder customerOrder) {
 		this.customerOrder = customerOrder;
 	}
-	
 
 }

@@ -10,6 +10,10 @@ import jade.domain.FIPAAgentManagement.*;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
+/*
+ * Ticker agent syncs global clock, tells agents when it is a new day
+ * */
+
 public class TickerAgent extends Agent {
 	public static final int num_days = 100;
 	
@@ -23,7 +27,7 @@ public class TickerAgent extends Agent {
 		sd.setName(getLocalName() + "-ticker-agent");
 		dfd.addServices(sd);
 		try {
-			DFService.deregister(this, dfd);
+			DFService.register(this, dfd);
 		}
 		catch(FIPAException e){
 			e.printStackTrace();
