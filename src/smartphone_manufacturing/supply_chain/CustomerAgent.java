@@ -110,7 +110,7 @@ public class CustomerAgent extends Agent {
 					dailyActivity.addSubBehaviour(new generateNewOrder(myAgent));
 					dailyActivity.addSubBehaviour(new requestManufacturer(myAgent));
 					dailyActivity.addSubBehaviour(new sendOrderAction(myAgent));
-					dailyActivity.addSubBehaviour(new EndDay(myAgent));
+					dailyActivity.addSubBehaviour(new EndOfDay(myAgent));
 					
 					myAgent.addBehaviour(dailyActivity);
 				}
@@ -294,8 +294,11 @@ public class CustomerAgent extends Agent {
 	    }
 	}
 	
-	public class EndDay extends OneShotBehaviour {
-		public EndDay(Agent a) {
+	public class EndOfDay extends OneShotBehaviour {
+
+		private static final long serialVersionUID = 1L;
+
+		public EndOfDay(Agent a) {
 			super(a);
 		}
 		

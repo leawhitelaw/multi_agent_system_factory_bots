@@ -16,6 +16,7 @@ public class HasComponents implements Predicate {
 	private static final long serialVersionUID = 1L;
 	private AID supplier;
 	private ArrayList<PhoneComponent> components;
+	private int quantity;
 	
 	@Slot(mandatory = true)
 	public AID getSupplier() {
@@ -36,13 +37,13 @@ public class HasComponents implements Predicate {
 		this.components = components;
 	}
 	
-//	@Slot(mandatory = true)
-//	public int getQuantity() {
-//		return quantity;
-//	}
-//	
-//	public void setQuantity(int quantity) {
-//		this.
-//	}
+	@Slot(mandatory = true)
+	public int getQuantity() {
+		return quantity;
+	}
+	
+	public void setQuantity(int quantity) {
+		this.quantity = quantity;
+	}
 
 }
