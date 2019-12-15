@@ -267,7 +267,7 @@ public class CustomerAgent extends Agent {
 				responseReceived = true;
 				if(msg.getPerformative() == ACLMessage.CONFIRM) {
 					//prepare message
-					System.out.println("\n APPROVED ORDER: Customer " + myAgent.getLocalName());
+					//System.out.println("\n APPROVED ORDER: Customer " + myAgent.getLocalName());
 					ACLMessage sendOrderMsg = new ACLMessage(ACLMessage.REQUEST);
 					sendOrderMsg.setConversationId("customer-order-sent");
 					sendOrderMsg.setLanguage(codec.getName());
@@ -296,7 +296,7 @@ public class CustomerAgent extends Agent {
 				}
 				//order rejected
 				else {
-					System.out.println("\n DENIED ORDER: Customer " + myAgent.getLocalName());
+					//System.out.println("\n DENIED ORDER: Customer " + myAgent.getLocalName());
 				}
 			}
 			//reply not received

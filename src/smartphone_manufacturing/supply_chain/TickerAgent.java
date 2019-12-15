@@ -84,19 +84,16 @@ public class TickerAgent extends Agent {
 					DFAgentDescription[] supplyAgents = DFService.search(myAgent, supplyTemplate);
 					for(int i=0; i<supplyAgents.length; i++) {
 						simulationAgents.add(supplyAgents[i].getName()); //this is the supply agents AID
-						System.out.println(supplyAgents[i].getName());
 					}
 					//search for customer agents
 					DFAgentDescription[] customerAgents = DFService.search(myAgent, customerTemplate);
 					for(int i=0; i<customerAgents.length; i++) {
 						simulationAgents.add(customerAgents[i].getName()); //this is the customer agents AID
-						System.out.println(customerAgents[i].getName());
 					}
 					//search for manufacturer agents
 					DFAgentDescription[] manufacturerAgents = DFService.search(myAgent, manufacturerTemplate);
 					for(int i=0; i<manufacturerAgents.length; i++) {
 						simulationAgents.add(manufacturerAgents[i].getName()); //this is the manufacturer agents AID
-						System.out.println(manufacturerAgents[i].getName());
 					}
 				}
 				catch(FIPAException e) {

@@ -14,6 +14,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 
@@ -56,6 +57,7 @@ public class ManufacturerAgent extends Agent {
 	private ArrayList<CustomerOrderStatus> orderList = new ArrayList<>();
 	private ArrayList<CustomerOrderStatus> approvedOrders = new ArrayList<>();
 	private ArrayList<CustomerOrderStatus> confirmedOrders = new ArrayList<>();
+	//private List<CustomerOrderStatus> toReceive = new ArrayList<>();
 	
 	
 	//keep track of daily variable outcomes
@@ -161,7 +163,7 @@ public class ManufacturerAgent extends Agent {
 				if(supplyAgents.length > 0) {
 					for(int i=0; i<supplyAgents.length; i++) {
 						suppliers.put(supplyAgents[i].getName(), new SupplierType(supplyAgents[i].getName())); //this is the supply agents AID
-						System.out.println("supplier " + i + " " + supplyAgents[i].getName());
+						//System.out.println("supplier " + i + " " + supplyAgents[i].getName());
 					}
 				}else {
 					System.out.println("*** Cannot find suppliers ***");
@@ -353,7 +355,7 @@ public class ManufacturerAgent extends Agent {
 							//orderStatus.getOrder().setOrderID(orderID);
 							approvedOrders.add(orderStatus);
 							orderStatus.setSupplier(quickestSupplier);
-							orderStatus.setComponentDeliveryDate(lowestDelivery);
+							orderStatus.setComponentDeliveryDate(day + lowestDelivery);
 							orderStatus.setPrice(cost);
 							orderStatus.setDayOrdered(day);
 							orderList.add(orderStatus);
@@ -393,6 +395,7 @@ public class ManufacturerAgent extends Agent {
 		private int step = 0;
 		private CustomerOrderStatus orderStatus;
 		private AID supplier;
+		private int approvedToConfirmed = 0;
 		
 		@Override
 		public void action() {
@@ -411,17 +414,18 @@ public class ManufacturerAgent extends Agent {
 							if(action instanceof ManufactureOrder) {
 								ManufactureOrder manufactureOrder = (ManufactureOrder)action;
 								
-								for(CustomerOrderStatus approvedOrder : approvedOrders) {
-									if(manufactureOrder.getOrder().getOrderID().contentEquals(approvedOrder.getOrder().getOrderID())) {
-										confirmedOrders.add(approvedOrder);
-									}
-								}
 								if(approvedOrders.size() > 0) {
-									
-									orderStatus = approvedOrders.get(0);
-									
+									for(CustomerOrderStatus approvedOrder : approvedOrders) {
+										if(manufactureOrder.getOrder().getOrderID().contentEquals(approvedOrder.getOrder().getOrderID())) {
+											confirmedOrders.add(approvedOrder);
+											approvedToConfirmed ++;
+										}
+									}
+									if(approvedToConfirmed == approvedOrders.size()) {
+										approvedOrders.clear();
+									}
+									orderStatus = confirmedOrders.get(0);
 									if(orderStatus != null) {
-										orderStatus.setOrderStatus("CONFIRMED");
 										step ++;
 									}else {
 										step = 0;
@@ -478,7 +482,6 @@ public class ManufacturerAgent extends Agent {
 				if(response != null) {
 					//if confirmed then do following
 					if (response.getPerformative() == ACLMessage.CONFIRM) {
-						System.out.println("Components request approved by supplier");
 						ACLMessage orderReq = new ACLMessage(ACLMessage.REQUEST);
 						orderReq.setOntology(ontology.getName());
 						orderReq.setLanguage(codec.getName());
@@ -496,8 +499,6 @@ public class ManufacturerAgent extends Agent {
 							
 							getContentManager().fillContent(orderReq, request);
 							send(orderReq);
-							System.out.println("Sell components request sent to supplier");
-							orderStatus.setComponentDeliveryDate(day + suppliers.get(supplier).getDelivery());
 							step++;
 							
 						}catch(CodecException ce) {
@@ -508,8 +509,8 @@ public class ManufacturerAgent extends Agent {
 							e.printStackTrace();
 						}
 					}else {
-						// if not confirmed then set order status to delete
-						orderStatus.setOrderStatus("DELETE");
+						// if not confirmed then remove order
+						confirmedOrders.remove(orderStatus);
 						step = 0;
 					}
 				}else {
@@ -534,6 +535,7 @@ public class ManufacturerAgent extends Agent {
 					getContentManager().fillContent(sendPayment, payment);
 					send(sendPayment);
 					costOfSupplies = costOfSupplies + supplyCost;
+					step = 0; 
 				}catch(CodecException ce) {
 					ce.printStackTrace();
 				}catch(OntologyException oe) {
@@ -553,23 +555,24 @@ public class ManufacturerAgent extends Agent {
 	} // end of order components behaviour
 	
 	public class ReceiveSupplies extends Behaviour {
-		
+
+		private static final long serialVersionUID = 1L;
+		private int suppliesReceived = 0;
+		private ArrayList<CustomerOrderStatus> toReceive = new ArrayList<>();
 		public ReceiveSupplies(Agent a) {
 			super(a);
 			//put inside here as it cannot be in behaviour outside of action
-		}
-		private int suppliesReceived = 0;
-		private ArrayList<CustomerOrderStatus> toReceive;
-		
-		@Override 
-		public void action() {
-			System.out.println("HERE!!!!!!!");
-			for(CustomerOrderStatus status : approvedOrders) {
-				System.out.println("delivery data: " + status.getComponentDeliveryDate());
+			for(CustomerOrderStatus status : confirmedOrders) {	
 				if(status.getComponentDeliveryDate() == day) {
+					//System.out.println("adding to list " + status);
 					toReceive.add(status);
 				}
 			}
+		}
+		
+		
+		@Override 
+		public void action() {
 			 MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM), MessageTemplate.MatchConversationId("sell-components-response"));
 			 ACLMessage receiveMsg = receive(mt);
 			 if(receiveMsg != null) {
@@ -762,7 +765,7 @@ public class ManufacturerAgent extends Agent {
 				}
 			}
 			
-			System.out.printf("Day %d, days profit = £%d, total profit = £%d", day,todaysProfit, totalProfit);
+			System.out.printf("Day %d, \ndays profit = £%d, \ntotal profit = £%d\n", day,todaysProfit, totalProfit );
 		}
 	}
 	

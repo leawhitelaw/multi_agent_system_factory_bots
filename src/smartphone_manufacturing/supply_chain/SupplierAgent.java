@@ -314,7 +314,6 @@ public class SupplierAgent extends Agent{
 		public void action() {
 			for(ComponentsOrder order: orders) {
 				if (order.getDelivery() == day) {
-					System.out.println("HERE!!!!!!!");
 					ComponentsSent sendComponents= new ComponentsSent();
 					ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 			        msg.setLanguage(codec.getName());
