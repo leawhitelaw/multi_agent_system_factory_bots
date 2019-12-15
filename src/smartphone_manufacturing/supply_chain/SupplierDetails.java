@@ -5,6 +5,9 @@ import smartphone_manufacturing.supply_chain_ontology.concepts.PhoneComponent;
 
 public class SupplierDetails {
 	
+	private static int SupplierOneDelivery = 1;
+	private static int SupplierTwoDelivery = 2;
+	
 	private static HashMap<PhoneComponent, Integer> supplierOneComponents =
 			new HashMap<PhoneComponent, Integer>() {
 			{
@@ -34,5 +37,13 @@ public class SupplierDetails {
 	  public static HashMap<PhoneComponent, Integer> getSupplierTwoComponents() {
 	    return supplierTwoComponents;
 	  }
+	  
+	  public static int getSupplierOneDelivery() {
+			return SupplierOneDelivery;
+		}
+
+	  public static int getSupplierTwoDelivery() {
+			return SupplierTwoDelivery;
+		}
 
 }

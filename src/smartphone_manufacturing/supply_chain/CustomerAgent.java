@@ -31,7 +31,9 @@ import smartphone_manufacturing.supply_chain_ontology.concepts.Phablet;
 import smartphone_manufacturing.supply_chain_ontology.concepts.CustomerOrder;
 import smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents.RAM;
 import smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents.Storage;
-import smartphone_manufacturing.supply_chain_ontology.predicates.CanManufacture;
+import smartphone_manufacturing.supply_chain_ontology.predicates.RequestManufacture;
+import smartphone_manufacturing.supply_chain_ontology.predicates.OrderShipped;
+import smartphone_manufacturing.supply_chain_ontology.predicates.PaymentSent;
 
 public class CustomerAgent extends Agent {
 	
@@ -66,11 +68,8 @@ public class CustomerAgent extends Agent {
 		catch(FIPAException e) {
 			e.printStackTrace();
 		}
-		
-		//add behaviour to sync agent with ticker agent and global day timing
 		addBehaviour(new TickerWaitBehaviour(this));
-		//add receive order cyclic behaviour
-		//addBehaviour(new ReceiveOrder(this));
+		addBehaviour(new ReceiveOrder(this));
 		
 	}
 	
@@ -106,7 +105,7 @@ public class CustomerAgent extends Agent {
 					SequentialBehaviour dailyActivity = new SequentialBehaviour();
 					//sub behaviours execute in the order that they are added
 					//for example: "dailyActivity.addSubBehaviour(new FindSellers(myAgent));" etc.
-					
+					dailyActivity.addSubBehaviour(new findManufacturer(myAgent));
 					dailyActivity.addSubBehaviour(new generateNewOrder(myAgent));
 					dailyActivity.addSubBehaviour(new requestManufacturer(myAgent));
 					dailyActivity.addSubBehaviour(new sendOrderAction(myAgent));
@@ -179,22 +178,17 @@ public class CustomerAgent extends Agent {
 			todaysOrder.setDaysToDeadline(dueDays);
 			todaysOrder.setQuantity(orderQty);
 			todaysOrder.setPerDayPenalty(perDayFee);
-			System.out.println(todaysOrder.toString());
+			//System.out.println(todaysOrder.toString());
 			
 		}
 	}
 	
-	public class requestManufacturer extends OneShotBehaviour {
-
-		private static final long serialVersionUID = 1L;
-
-		public requestManufacturer(Agent a) {
+	public class findManufacturer extends OneShotBehaviour{
+		public findManufacturer(Agent a) {
 			super(a);
 		}
-		
 		@Override
 		public void action() {
-			//find manufacturer
 			DFAgentDescription manufacturerTemplate = new DFAgentDescription();
 			ServiceDescription sd = new ServiceDescription();
 			sd.setType("manufacturer-agent");
@@ -208,21 +202,46 @@ public class CustomerAgent extends Agent {
 			}catch(FIPAException e) {
 				e.printStackTrace();
 			}
+			System.out.println("manufacturer = " + manufacturerAgent);
+		}
+	}
+	
+	public class requestManufacturer extends OneShotBehaviour {
+
+		private static final long serialVersionUID = 1L;
+
+		public requestManufacturer(Agent a) {
+			super(a);
+		}
+		
+		@Override
+		public void action() {
+//			//find manufacturer
+//			DFAgentDescription manufacturerTemplate = new DFAgentDescription();
+//			ServiceDescription sd = new ServiceDescription();
+//			sd.setType("manufacturer-agent");
+//			manufacturerTemplate.addServices(sd);
+//			try {
+//				DFAgentDescription[] manufacturerList  = DFService.search(myAgent, manufacturerTemplate);
+//				if(manufacturerList.length >0) {
+//					manufacturerAgent = manufacturerList[0].getName(); //gets AID of manufacturer
+//				}
+//				
+//			}catch(FIPAException e) {
+//				e.printStackTrace();
+//			}
 			//prepare query
-			ACLMessage msg = new ACLMessage(ACLMessage.QUERY_IF);
-			msg.setLanguage(codec.getName());
-			msg.setOntology(ontology.getName());
-			msg.setConversationId("customer-order-request");
-			msg.addReceiver(manufacturerAgent);
-			//use ontology to query if manufacturer can make the order or not
-			CanManufacture canManufacture = new CanManufacture();
-			canManufacture.setManufacturer(manufacturerAgent);
-			canManufacture.setOrder(todaysOrder);
-			
-			//send query
+			RequestManufacture requestManufacture = new RequestManufacture();
+			ACLMessage requestMsg = new ACLMessage(ACLMessage.QUERY_IF);
+			requestMsg.setLanguage(codec.getName());
+			requestMsg.setOntology(ontology.getName());
+			requestMsg.setConversationId("customer-order-request");
+			requestMsg.addReceiver(manufacturerAgent);
+			requestManufacture.setManufacturer(manufacturerAgent);
+			requestManufacture.setOrder(todaysOrder);
 			try {
-				getContentManager().fillContent(msg, canManufacture);
-				send(msg);
+				getContentManager().fillContent(requestMsg, requestManufacture);
+				send(requestMsg);
 			}catch(CodecException ce) {
 				ce.printStackTrace();
 			}catch(OntologyException oe) {
@@ -292,6 +311,51 @@ public class CustomerAgent extends Agent {
 		public boolean done() {
 	      return responseReceived;
 	    }
+	}
+	
+	public class ReceiveOrder extends CyclicBehaviour {
+		public ReceiveOrder(Agent a) {
+			super(a);
+		}
+		
+		@Override
+		public void action() {
+			MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM),MessageTemplate.MatchConversationId("send-phones-to-customer"));
+			ACLMessage receiveMsg = receive(mt);
+			if(receiveMsg!= null) {
+				try {
+					ContentElement ce = null;
+					ce = getContentManager().extractContent(receiveMsg);
+					if(ce instanceof OrderShipped) {
+						OrderShipped receivedOrder = (OrderShipped) ce;
+						CustomerOrder order = receivedOrder.getOrder();
+						int orderID = order.getOrderID();
+						int price = (int) receivedOrder.getOrder().getPrice();
+						PaymentSent customerPayment = new PaymentSent();
+						ACLMessage payment = new ACLMessage(ACLMessage.INFORM);
+						payment.setOntology(ontology.getName());
+						payment.setLanguage(codec.getName());
+						payment.setConversationId("order-payment");
+						payment.addReceiver(receivedOrder.getManufacturer());
+						customerPayment.setBuyer(myAgent.getAID());
+						customerPayment.setOrderID(orderID);
+						customerPayment.setPrice(price);
+						
+						getContentManager().fillContent(payment, customerPayment);
+						send(payment); // send payment to manufacturer
+						requestedOrders.remove(order); //remove order from orders
+						
+					}else {
+						System.out.println("\n Wrong paymentinfo sent to " + myAgent.getLocalName() + " from manufacturer");
+					}
+					
+				}catch(CodecException ce) {
+					ce.printStackTrace();
+				}catch(OntologyException oe) {
+					oe.printStackTrace();
+				}
+			}
+		}
 	}
 	
 	public class EndOfDay extends OneShotBehaviour {

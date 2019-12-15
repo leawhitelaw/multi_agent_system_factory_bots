@@ -35,9 +35,9 @@ import smartphone_manufacturing.supply_chain_ontology.concepts.CustomerOrder;
 import smartphone_manufacturing.supply_chain_ontology.concepts.PhoneComponent;
 import smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents.RAM;
 import smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents.Storage;
-import smartphone_manufacturing.supply_chain_ontology.predicates.CanManufacture;
+import smartphone_manufacturing.supply_chain_ontology.predicates.RequestManufacture;
 import smartphone_manufacturing.supply_chain_ontology.predicates.ComponentsSent;
-import smartphone_manufacturing.supply_chain_ontology.predicates.HasComponents;
+import smartphone_manufacturing.supply_chain_ontology.predicates.ComponentsInStock;
 import smartphone_manufacturing.supply_chain_ontology.predicates.OrderShipped;
 import smartphone_manufacturing.supply_chain_ontology.predicates.PaymentSent;
 import smartphone_manufacturing.supply_chain_ontology.predicates.SentSupplierDetails;
@@ -46,8 +46,7 @@ public class ManufacturerAgent extends Agent {
 	
 	private Codec codec = new SLCodec();
 	private AID tickerAgent;
-	//private int numQueriesSent;
-	private AID customerAgent;
+
 	private int day = 1;
 	//private ArrayList<CustomerOrder> requestedOrders = new ArrayList<>(); //accepted orders
 	private ArrayList<AID> customers = new ArrayList<>();
@@ -118,6 +117,15 @@ public class ManufacturerAgent extends Agent {
 				
 				if(msg.getContent().equals("new-day")) {
 					SequentialBehaviour dailyActivity = new SequentialBehaviour();
+					dailyActivity.addSubBehaviour(new GetSuppliers(myAgent));
+					dailyActivity.addSubBehaviour(new GetSupplierDetails(myAgent));
+					dailyActivity.addSubBehaviour(new GetCustomers(myAgent));
+					dailyActivity.addSubBehaviour(new SelectCustomerOrders(myAgent));
+					dailyActivity.addSubBehaviour(new OrderComponents(myAgent));
+					dailyActivity.addSubBehaviour(new ReceiveSupplies(myAgent));
+					dailyActivity.addSubBehaviour(new MakeOrder(myAgent));
+					dailyActivity.addSubBehaviour(new CalculateDailyTotals(myAgent));
+					dailyActivity.addSubBehaviour(new EndOfDay(myAgent));
 					
 					myAgent.addBehaviour(dailyActivity);
 				} else {
@@ -175,7 +183,7 @@ public class ManufacturerAgent extends Agent {
 			ACLMessage supplierMsg = new ACLMessage(ACLMessage.REQUEST);
 			supplierMsg.setLanguage(codec.getName());
 			supplierMsg.setOntology(ontology.getName()); 
-			supplierMsg.setConversationId("supplier-details");
+			supplierMsg.setConversationId("request-supplier-details");
 			
 			SendDetails sendSupplierDetails = new SendDetails();
 			sendSupplierDetails.setBuyer(myAgent.getAID());
@@ -210,7 +218,6 @@ public class ManufacturerAgent extends Agent {
 						
 						if(ce instanceof SentSupplierDetails) {
 							SentSupplierDetails supplierDetails = (SentSupplierDetails) ce;
-							
 							HashMap<PhoneComponent, Integer> prices = new HashMap<>();
 							ArrayList<PhoneComponent> Components = supplierDetails.getPhoneComponents();
 							ArrayList<Integer> ComponentPrices = supplierDetails.getComponentPrices();
@@ -293,8 +300,8 @@ public class ManufacturerAgent extends Agent {
 					ContentElement ce = null;
 					ce = getContentManager().extractContent(msg);
 					
-					if(ce instanceof CanManufacture) {
-						CanManufacture manufactureRequest = (CanManufacture) ce;
+					if(ce instanceof RequestManufacture) {
+						RequestManufacture manufactureRequest = (RequestManufacture) ce;
 						CustomerOrder order = manufactureRequest.getOrder();
 						orderStatus = new CustomerOrderStatus(order);
 						orderStatus.setCustomer(msg.getSender());
@@ -418,18 +425,18 @@ public class ManufacturerAgent extends Agent {
 				//if step = 1 then components are to be ordered otherwise there are no approved orders
 			case 1:
 				supplier = orderStatus.getSupplier();
-				HasComponents hasComponents = new HasComponents(); //new request for components
+				ComponentsInStock componentsInStock = new ComponentsInStock(); //new request for components
 				
 				ACLMessage askSupplierMsg = new ACLMessage(ACLMessage.QUERY_IF);
 				askSupplierMsg.setLanguage(codec.getName());
 				askSupplierMsg.setOntology(ontology.getName());
 				askSupplierMsg.setConversationId("sell-components-request");
 				askSupplierMsg.addReceiver(supplier);
-				hasComponents.setSupplier(supplier);
-				hasComponents.setQuantity(orderStatus.getOrder().getQuantity());
+				componentsInStock.setSupplier(supplier);
+				componentsInStock.setQuantity(orderStatus.getOrder().getQuantity());
 				try {
-					hasComponents.setComponents(orderStatus.getOrder().getSmartPhone().getPhoneComponents());
-					getContentManager().fillContent(askSupplierMsg, hasComponents);
+					componentsInStock.setComponents(orderStatus.getOrder().getSmartPhone().getPhoneComponents());
+					getContentManager().fillContent(askSupplierMsg, componentsInStock);
 					send(askSupplierMsg);
 					step++;
 				}catch(CodecException ce) {
@@ -455,7 +462,7 @@ public class ManufacturerAgent extends Agent {
 						orderReq.addReceiver(supplier);
 						try {
 							SellComponents sellComps = new SellComponents();
-							sellComps.setBuyer(myAgent.getAID());
+							sellComps.setManufacturer(myAgent.getAID());
 							sellComps.setComponents(orderStatus.getOrder().getSmartPhone().getPhoneComponents());
 							sellComps.setQuantity(orderStatus.getOrder().getQuantity());
 							sellComps.setOrderId(orderID);
@@ -488,7 +495,7 @@ public class ManufacturerAgent extends Agent {
 			break;
 			
 			case 3:
-				//order has been  send for components 
+				//order has been  sent for components 
 				int supplyCost = orderStatus.getPrice();
 				ACLMessage sendPayment = new ACLMessage(ACLMessage.INFORM);
 				sendPayment.setOntology(ontology.getName());

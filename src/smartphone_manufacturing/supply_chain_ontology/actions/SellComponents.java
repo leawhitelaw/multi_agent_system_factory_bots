@@ -16,7 +16,7 @@ public class SellComponents implements AgentAction {
 	private ArrayList<PhoneComponent> phoneComponents;
 	private int orderID;
 	private int quantity;
-	private AID buyer;
+	private AID manufacturer;
 	
 	@Slot(mandatory = true)
 	  public ArrayList<PhoneComponent> getComponents() {
@@ -45,12 +45,12 @@ public class SellComponents implements AgentAction {
 	}
 	
 	@Slot(mandatory = true)
-	public AID getBuyer() {
-		return buyer;
+	public AID getManufacturer() {
+		return manufacturer;
 	}
 	
-	public void setBuyer(AID buyer) {
-		this.buyer = buyer;
+	public void setManufacturer(AID manufacturer) {
+		this.manufacturer = manufacturer;
 	}
 
 }

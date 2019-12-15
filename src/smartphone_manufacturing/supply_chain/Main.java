@@ -16,10 +16,22 @@ public class Main {
 			ContainerController myContainer = myRuntime.createMainContainer(myProfile);	
 			AgentController rma = myContainer.createNewAgent("rma", "jade.tools.rma.rma", null);
 			rma.start();
-			
-			AgentController customerAgent = myContainer.createNewAgent("customer" , CustomerAgent.class.getCanonicalName(), null);
-			customerAgent.start();
-			
+			//start customer agents
+			int customers = 3;
+			AgentController customerAgent;
+			for(int i=0; i < customers; i++) {
+				customerAgent = myContainer.createNewAgent("customer-" + i , CustomerAgent.class.getCanonicalName(), null);
+				customerAgent.start();
+			}
+			//start manufacturer agent
+			AgentController manufacturerAgent = myContainer.createNewAgent("manufacturer", ManufacturerAgent.class.getCanonicalName(), null);
+			manufacturerAgent.start();
+			//start supplier agents
+			AgentController supplierOne = myContainer.createNewAgent("supplier-1", SupplierAgent.class.getCanonicalName(), new Object[] {1});
+			supplierOne.start();
+			AgentController supplierTwo = myContainer.createNewAgent("supplier-2", SupplierAgent.class.getCanonicalName(), new Object[] {2});
+			supplierTwo.start();
+			//start ticker agent
 			AgentController tickerAgent = myContainer.createNewAgent("ticker", TickerAgent.class.getCanonicalName(), null);
 			tickerAgent.start();
 			

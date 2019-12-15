@@ -9,7 +9,7 @@ import smartphone_manufacturing.supply_chain_ontology.concepts.CustomerOrder;
  * Predicate for customer to query if manufacturer can manufacture the order
  * */
 
-public class CanManufacture implements Predicate {
+public class RequestManufacture implements Predicate {
 	
 	private static final long serialVersionUID = 1L;
 	private AID manufacturer;

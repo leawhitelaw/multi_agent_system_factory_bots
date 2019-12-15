@@ -11,7 +11,7 @@ import smartphone_manufacturing.supply_chain_ontology.concepts.PhoneComponent;
  * Predicate to query if supplier owns required components 
  * */
 
-public class HasComponents implements Predicate {
+public class ComponentsInStock implements Predicate {
 
 	private static final long serialVersionUID = 1L;
 	private AID supplier;
