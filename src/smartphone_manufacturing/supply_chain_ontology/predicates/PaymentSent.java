@@ -29,7 +29,7 @@ public class PaymentSent implements Predicate {
 	}
 	
 	@Slot(mandatory = true)
-	public double getPrice() {
+	public int getPrice() {
 		return price;
 	}
 	

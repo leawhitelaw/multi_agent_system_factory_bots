@@ -1,5 +1,7 @@
 package smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents;
 
+import java.util.Objects;
+
 import jade.content.onto.annotations.Slot;
 import smartphone_manufacturing.supply_chain_ontology.concepts.PhoneComponent;
 
@@ -31,5 +33,11 @@ public class Storage extends PhoneComponent {
 	public String toString() {
 		return "Storage: " + this.gb;
 	}
+	
+	@Override
+	  public int hashCode() {
+	    return Objects.hash(this.gb);
+	  }
+	
 
 }

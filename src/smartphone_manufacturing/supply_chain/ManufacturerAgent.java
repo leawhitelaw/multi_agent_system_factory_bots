@@ -14,8 +14,10 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.ArrayList;
 
 import jade.content.Concept;
@@ -35,7 +37,11 @@ import smartphone_manufacturing.supply_chain_ontology.concepts.SmallPhone;
 import smartphone_manufacturing.supply_chain_ontology.concepts.Phablet;
 import smartphone_manufacturing.supply_chain_ontology.concepts.CustomerOrder;
 import smartphone_manufacturing.supply_chain_ontology.concepts.PhoneComponent;
+import smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents.PhabletBattery;
+import smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents.PhabletScreen;
 import smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents.RAM;
+import smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents.SmallBattery;
+import smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents.SmallScreen;
 import smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents.Storage;
 import smartphone_manufacturing.supply_chain_ontology.predicates.RequestManufacture;
 import smartphone_manufacturing.supply_chain_ontology.predicates.ComponentsSent;
@@ -52,21 +58,22 @@ public class ManufacturerAgent extends Agent {
 	private int day = 1;
 	//private ArrayList<CustomerOrder> requestedOrders = new ArrayList<>(); //accepted orders
 	private ArrayList<AID> customers = new ArrayList<>();
-	private HashMap<PhoneComponent, Integer> warehouse = new HashMap<>(); // components and their qty in warehouse
+	private HashMap<Integer, Integer> warehouse = new HashMap<>(); // components and their qty in warehouse
 	private HashMap<AID, SupplierType> suppliers = new HashMap<>();
 	private ArrayList<CustomerOrderStatus> orderList = new ArrayList<>();
 	private ArrayList<CustomerOrderStatus> approvedOrders = new ArrayList<>();
 	private ArrayList<CustomerOrderStatus> confirmedOrders = new ArrayList<>();
+	private  ArrayList<CustomerOrderStatus> gotComponents = new ArrayList<>();
 	//private List<CustomerOrderStatus> toReceive = new ArrayList<>();
 	
 	
 	//keep track of daily variable outcomes
-	private int orderID = 0;
 	private int todaysProfit = 0;
 	private int latePenalty = 0;
 	private int storageCost = 0;
 	private int costOfSupplies = 0;
 	private int totalProfit = 0;
+	private int todaysPhoneQuantity = 0;
 	
 	//get ontology
 	private Ontology ontology = ManufacturingOntology.getInstance();
@@ -122,13 +129,17 @@ public class ManufacturerAgent extends Agent {
 				
 				if(msg.getContent().equals("new-day")) {
 					SequentialBehaviour dailyActivity = new SequentialBehaviour();
+					//find agents on yellow pages
 					dailyActivity.addSubBehaviour(new GetCustomers(myAgent));
 					dailyActivity.addSubBehaviour(new GetSuppliers(myAgent));
+					//get supplier info
 					dailyActivity.addSubBehaviour(new GetSupplierDetails(myAgent));
+					//manufacturing activities
 					dailyActivity.addSubBehaviour(new SelectCustomerOrders(myAgent));
 					dailyActivity.addSubBehaviour(new OrderComponents(myAgent));
 					dailyActivity.addSubBehaviour(new ReceiveSupplies(myAgent));
 					dailyActivity.addSubBehaviour(new MakeOrder(myAgent));
+					//terminate day
 					dailyActivity.addSubBehaviour(new CalculateDailyTotals(myAgent));
 					dailyActivity.addSubBehaviour(new EndOfDay(myAgent));
 					
@@ -351,13 +362,12 @@ public class ManufacturerAgent extends Agent {
 						
 						ACLMessage reply = msg.createReply();
 						if(profit > 0) {
-							//orderID ++;
-							//orderStatus.getOrder().setOrderID(orderID);
 							approvedOrders.add(orderStatus);
 							orderStatus.setSupplier(quickestSupplier);
 							orderStatus.setComponentDeliveryDate(day + lowestDelivery);
 							orderStatus.setPrice(cost);
 							orderStatus.setDayOrdered(day);
+							orderStatus.setOrderCompleted(false);
 							orderList.add(orderStatus);
 							reply.setPerformative(ACLMessage.CONFIRM);
 						}else {
@@ -413,18 +423,18 @@ public class ManufacturerAgent extends Agent {
 							Concept action = ((Action)ce).getAction();
 							if(action instanceof ManufactureOrder) {
 								ManufactureOrder manufactureOrder = (ManufactureOrder)action;
-								
 								if(approvedOrders.size() > 0) {
 									for(CustomerOrderStatus approvedOrder : approvedOrders) {
 										if(manufactureOrder.getOrder().getOrderID().contentEquals(approvedOrder.getOrder().getOrderID())) {
 											confirmedOrders.add(approvedOrder);
-											approvedToConfirmed ++;
+											approvedToConfirmed++;
 										}
 									}
 									if(approvedToConfirmed == approvedOrders.size()) {
 										approvedOrders.clear();
 									}
 									orderStatus = confirmedOrders.get(0);
+									confirmedOrders.remove(0);
 									if(orderStatus != null) {
 										step ++;
 									}else {
@@ -523,12 +533,14 @@ public class ManufacturerAgent extends Agent {
 			case 3:
 				//order has been  sent for components 
 				int supplyCost = orderStatus.getPrice();
+				String orderID = orderStatus.getOrder().getOrderID();
 				ACLMessage sendPayment = new ACLMessage(ACLMessage.INFORM);
 				sendPayment.setOntology(ontology.getName());
 				sendPayment.setLanguage(codec.getName());
 				sendPayment.setConversationId("pay-components");
 				sendPayment.addReceiver(supplier);
 				PaymentSent payment = new PaymentSent();
+				payment.setOrderID(orderID);
 				payment.setBuyer(myAgent.getAID());
 				payment.setPrice(supplyCost);
 				try {
@@ -562,7 +574,7 @@ public class ManufacturerAgent extends Agent {
 		public ReceiveSupplies(Agent a) {
 			super(a);
 			//put inside here as it cannot be in behaviour outside of action
-			for(CustomerOrderStatus status : confirmedOrders) {	
+			for(CustomerOrderStatus status : orderList) {	
 				if(status.getComponentDeliveryDate() == day) {
 					//System.out.println("adding to list " + status);
 					toReceive.add(status);
@@ -576,7 +588,7 @@ public class ManufacturerAgent extends Agent {
 			 MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM), MessageTemplate.MatchConversationId("sell-components-response"));
 			 ACLMessage receiveMsg = receive(mt);
 			 if(receiveMsg != null) {
-				 int quantity;
+				 int wHquantity;
 				 String orderID;
 				 
 				 try {
@@ -585,21 +597,23 @@ public class ManufacturerAgent extends Agent {
 					 if (ce instanceof ComponentsSent) {
 						 ComponentsSent componentsSent = (ComponentsSent) ce;
 						 ArrayList<PhoneComponent> phoneComponents = componentsSent.getPhoneComponents();
-						 quantity = componentsSent.getQty();
+						 wHquantity = componentsSent.getQty();
 						 orderID = componentsSent.getOrderID();
-						 
-						 //add components to warehouse components
+						 //System.out.println("component " + warehouse.get(phoneComponents.get(0)));
 						 for(PhoneComponent component : phoneComponents) {
-							 if(warehouse.get(component) == null) {
-								 warehouse.put(component, quantity);
-							 }else {
-								 int currentQuantity = warehouse.get(component);
-								 warehouse.put(component, currentQuantity + quantity);
+							 //System.out.println("component: " + component + " hashcode: " + component.hashCode());
+							 if(warehouse.containsKey(component.hashCode())) {
+								 int currentQuantity = warehouse.get(component.hashCode());
+								 warehouse.put(component.hashCode(), wHquantity + currentQuantity);
+							 }else { 
+								 warehouse.put(component.hashCode(), wHquantity);
 							 }
+							 
 						 }
+						 
 						 for(CustomerOrderStatus status : orderList) {
-							 if(status.getOrder().getOrderID() == orderID) {
-								 status.setOrderStatus("READY");
+							 if(status.getOrder().getOrderID().equals(orderID)) {
+								 gotComponents.add(status);
 							 }
 						 }
 						 suppliesReceived ++;
@@ -638,23 +652,20 @@ public class ManufacturerAgent extends Agent {
 		public void action() {
 			switch(step) {
 			case 0:
-				for(CustomerOrderStatus status: orderList) {
+				System.out.println(warehouse);
+				for(CustomerOrderStatus status: gotComponents) {
 					ArrayList<PhoneComponent> phoneComponents = status.getOrder().getSmartPhone().getPhoneComponents();
 					int quantity = status.getOrder().getQuantity();
-					if(status.getOrderStatus() == "READY") {
 						boolean warehouseHasComponents = true;
 						for(PhoneComponent component : phoneComponents) {
-							if(!warehouse.containsKey(component) || (warehouse.containsKey(component) 
-																	&& warehouse.get(component) < quantity)){
+							if(!warehouse.containsKey(component.hashCode()) || (warehouse.containsKey(component.hashCode()) 
+																	&& warehouse.get(component.hashCode()) < quantity)){
 								warehouseHasComponents = false;
 								break; //stop above being overwritten
 							}
 						}
 						
-						if(warehouseHasComponents == false) {
-							continue;
-						}
-						else {
+						if(warehouseHasComponents != false) {
 							//assemble and send order to customer
 							OrderShipped sendOrder = new OrderShipped();
 							ACLMessage sendMsg = new ACLMessage(ACLMessage.INFORM);
@@ -667,13 +678,12 @@ public class ManufacturerAgent extends Agent {
 							try {
 								//remove components from warehouse (assemble)
 								for(PhoneComponent component : phoneComponents) {
-									int currQty = warehouse.get(component);
-									warehouse.put(component, (currQty - quantity));
+									int currQty = warehouse.get(component.hashCode());
+									warehouse.put(component.hashCode(), (currQty - quantity));
 								}
 								//ship order
 								getContentManager().fillContent(sendMsg, sendOrder);
 								send(sendMsg);
-								status.setOrderStatus("SENT_ORDER");
 								awaitingPayment++;
 							}catch(CodecException ce) {
 								ce.printStackTrace();
@@ -683,9 +693,6 @@ public class ManufacturerAgent extends Agent {
 								e.printStackTrace();
 							}
 						}
-					}else {
-						continue; //order not ready
-					}
 				}
 				
 				step++;
@@ -702,12 +709,14 @@ public class ManufacturerAgent extends Agent {
 						
 						if (ce instanceof PaymentSent) {
 							PaymentSent payment = (PaymentSent) ce;
+							//System.out.println("PAYMENT DETAILS : " + payment.getPrice());
 							for(CustomerOrderStatus status : orderList) {
 								if(status.getOrder().getOrderID() == payment.getOrderID()) {
-									status.setOrderStatus("COMPLETED");
+									status.setOrderCompleted(true);
 								}
 							}
 							todaysProfit += payment.getPrice();
+							System.out.println("ADDING TO PROFIT: " + payment.getPrice() + " from customer " + payment.getBuyer());
 							awaitingPayment --;
 						}else {
 							System.out.println("Agent: " + myAgent.getAID() + "Received wrong msg from customer");
@@ -740,8 +749,8 @@ public class ManufacturerAgent extends Agent {
 		@Override
 		public void action() {
 			//calculate warehouse totals
-			for(PhoneComponent component : warehouse.keySet()) {
-				int cost = warehouse.get(component)*5;
+			for(Integer component : warehouse.keySet()) {
+				int cost = warehouse.get(component) * 5;
 				storageCost += cost;
 			}
 			
@@ -760,12 +769,13 @@ public class ManufacturerAgent extends Agent {
 			
 			//remove finished order from current order list
 			for(CustomerOrderStatus status : orderList) {
-				if(status.getOrderStatus()=="COMPLETED") {
+				if(status.getOrderCompleted()==true) {
 					orderList.remove(status);
+					confirmedOrders.remove(status);
 				}
 			}
 			
-			System.out.printf("Day %d, \ndays profit = £%d, \ntotal profit = £%d\n", day,todaysProfit, totalProfit );
+			System.out.printf("\n Day %d, \nTodays profit = £%d, \nTotal profit = £%d\n", day,todaysProfit, totalProfit );
 		}
 	}
 	
@@ -786,9 +796,8 @@ public class ManufacturerAgent extends Agent {
 				doneMsg.addReceiver(supplier);
 			}
 			myAgent.send(doneMsg);
+			System.out.println("MANU DONE!");
 			day++;
 		}
-		//
-		
 	}
 }

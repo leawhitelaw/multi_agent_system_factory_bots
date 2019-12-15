@@ -5,4 +5,10 @@ import jade.content.Concept;
 public abstract class PhoneComponent implements Concept{
 	private static final long serialVersionUID = 1l;
 
+	protected int componentID;
+	
+	public int getComponentID() {
+		return componentID;
+	}
+
 }

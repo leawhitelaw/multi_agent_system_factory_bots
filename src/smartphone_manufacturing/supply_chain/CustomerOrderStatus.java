@@ -7,7 +7,7 @@ import smartphone_manufacturing.supply_chain_ontology.concepts.CustomerOrder;
 
 public class CustomerOrderStatus {
 	
-	private String orderStatus;
+	private boolean orderCompleted; //know when order has been completed
 	private AID supplier;
 	private AID customer;
 	private CustomerOrder order;
@@ -21,12 +21,12 @@ public class CustomerOrderStatus {
 		components = new HashMap<>();
 	}
 
-	public String getOrderStatus() {
-		return orderStatus;
+	public boolean getOrderCompleted() {
+		return orderCompleted;
 	}
 
-	public void setOrderStatus(String orderStatus) {
-		this.orderStatus = orderStatus;
+	public void setOrderCompleted(boolean bool) {
+		this.orderCompleted = bool;
 	}
 
 	public AID getSupplier() {

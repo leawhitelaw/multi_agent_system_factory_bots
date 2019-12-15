@@ -139,7 +139,7 @@ public class TickerAgent extends Agent {
 		
 		@Override
 		public int onEnd() {
-			System.out.println("End-of-day" + day);
+			System.out.println("End-of-day " + day + "!");
 			//send termination to agents if end of days and terminate
 			if(day == num_days) {
 				ACLMessage msg = new ACLMessage(ACLMessage.INFORM);

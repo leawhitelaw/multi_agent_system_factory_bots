@@ -1,4 +1,6 @@
 package smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents;
+import java.util.Objects;
+
 import jade.content.onto.annotations.Slot;
 import smartphone_manufacturing.supply_chain_ontology.concepts.PhoneComponent;
 
@@ -30,6 +32,11 @@ public class RAM extends PhoneComponent {
 	public String toString() {
 		return "RAM: " + this.gb;
 	}
+	
+	@Override
+	  public int hashCode() {
+	    return Objects.hash(this.gb);
+	  }
 	
 	@Override
 	public boolean equals(Object ram) {

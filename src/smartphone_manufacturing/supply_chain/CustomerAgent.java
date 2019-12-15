@@ -153,14 +153,18 @@ public class CustomerAgent extends Agent {
 			PhabletScreen phabScreen = new PhabletScreen();
 			
 			// random order specification generator
-			Random rand = new Random();
-			int orderQty = (int) Math.floor(1 + 50 * (rand.nextFloat()));
-			int price = (int) ((int) orderQty * Math.floor(100 + (500 * (rand.nextFloat()))));
-			System.out.println(myAgent.getAID() + " price = " + price);
-			int dueDays = (int) Math.floor(1 + 10 * rand.nextFloat());
-			int perDayFee = (int) (orderQty * (Math.floor(1 + 50 * (rand.nextFloat()))));
+			//Random rand = new Random();
+			double rand = Math.random();
+			int orderQty = (int) Math.floor(1 + 50 * (rand));
+			rand = Math.random();
+			int price = (int) ((int) orderQty * Math.floor(100 + (500 * (rand))));
+			rand = Math.random();
+			int dueDays = (int) Math.floor(1 + 10 * rand);
+			rand = Math.random();
+			int perDayFee = (int) (orderQty * (Math.floor(1 + 50 * (rand))));
 			
-			if(rand.nextFloat() < 0.5) {
+			rand = Math.random();
+			if(rand < 0.5) {
 				//small phone
 				phone.setBattery(smallBatt);
 				phone.setScreen(smallScreen);
@@ -170,13 +174,15 @@ public class CustomerAgent extends Agent {
 				phone.setBattery(phabBatt);
 				phone.setScreen(phabScreen);
 			}
-			if(rand.nextFloat()< 0.5) {
+			rand = Math.random();
+			if(rand< 0.5) {
 				ram = new RAM(4);
 			}
 			else {
 				ram = new RAM(8);
 			}
-			if(rand.nextFloat()< 0.5) {
+			rand = Math.random();
+			if(rand< 0.5) {
 				storage = new Storage(64);
 			}
 			else {
@@ -371,6 +377,7 @@ public class CustomerAgent extends Agent {
 			doneMsg.setContent("done");
 			doneMsg.addReceiver(tickerAgent);
 			myAgent.send(doneMsg);
+			System.out.println("CUSTOMER DONE!");
 			day++;
 		}
 	}
