@@ -10,7 +10,7 @@ import smartphone_manufacturing.supply_chain_ontology.concepts.PhoneComponent;
 public class ComponentsSent implements Predicate {
 	
 	private AID seller;
-	private int orderID;
+	private String orderID;
 	private int qty;
 	private ArrayList<PhoneComponent> phoneComponents;
 	
@@ -24,11 +24,11 @@ public class ComponentsSent implements Predicate {
 	}
 	
 	@Slot(mandatory = true)
-	public int getOrderID() {
+	public String getOrderID() {
 		return orderID;
 	}
 	
-	public void setOrderID(int orderID) {
+	public void setOrderID(String orderID) {
 		this.orderID = orderID;
 	}
 	

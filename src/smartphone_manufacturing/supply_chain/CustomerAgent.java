@@ -1,4 +1,5 @@
 package smartphone_manufacturing.supply_chain;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
@@ -29,7 +30,11 @@ import smartphone_manufacturing.supply_chain_ontology.concepts.SmartPhone;
 import smartphone_manufacturing.supply_chain_ontology.concepts.SmallPhone;
 import smartphone_manufacturing.supply_chain_ontology.concepts.Phablet;
 import smartphone_manufacturing.supply_chain_ontology.concepts.CustomerOrder;
+import smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents.PhabletBattery;
+import smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents.PhabletScreen;
 import smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents.RAM;
+import smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents.SmallBattery;
+import smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents.SmallScreen;
 import smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents.Storage;
 import smartphone_manufacturing.supply_chain_ontology.predicates.RequestManufacture;
 import smartphone_manufacturing.supply_chain_ontology.predicates.OrderShipped;
@@ -68,7 +73,10 @@ public class CustomerAgent extends Agent {
 		catch(FIPAException e) {
 			e.printStackTrace();
 		}
+		
+		//add behaviour to sync agent with ticker agent and global day timing
 		addBehaviour(new TickerWaitBehaviour(this));
+		//add receive order cyclic behaviour - outside of usual behaviour loop so days can continue
 		addBehaviour(new ReceiveOrder(this));
 		
 	}
@@ -105,7 +113,7 @@ public class CustomerAgent extends Agent {
 					SequentialBehaviour dailyActivity = new SequentialBehaviour();
 					//sub behaviours execute in the order that they are added
 					//for example: "dailyActivity.addSubBehaviour(new FindSellers(myAgent));" etc.
-					dailyActivity.addSubBehaviour(new findManufacturer(myAgent));
+					
 					dailyActivity.addSubBehaviour(new generateNewOrder(myAgent));
 					dailyActivity.addSubBehaviour(new requestManufacturer(myAgent));
 					dailyActivity.addSubBehaviour(new sendOrderAction(myAgent));
@@ -136,24 +144,31 @@ public class CustomerAgent extends Agent {
 		public void action() {
 			
 			todaysOrder = new CustomerOrder();
-			SmartPhone phone;
+			SmartPhone phone = new SmartPhone();
 			RAM ram;
 			Storage storage;
+			SmallBattery smallBatt = new SmallBattery();
+			SmallScreen smallScreen = new SmallScreen();
+			PhabletBattery phabBatt = new PhabletBattery();
+			PhabletScreen phabScreen = new PhabletScreen();
 			
 			// random order specification generator
 			Random rand = new Random();
 			int orderQty = (int) Math.floor(1 + 50 * (rand.nextFloat()));
-			int price = (int) ((int) orderQty * (Math.floor(100 + 500 * (rand.nextFloat()))));
+			int price = (int) ((int) orderQty * Math.floor(100 + (500 * (rand.nextFloat()))));
+			System.out.println(myAgent.getAID() + " price = " + price);
 			int dueDays = (int) Math.floor(1 + 10 * rand.nextFloat());
 			int perDayFee = (int) (orderQty * (Math.floor(1 + 50 * (rand.nextFloat()))));
 			
 			if(rand.nextFloat() < 0.5) {
 				//small phone
-				phone = new SmallPhone();
+				phone.setBattery(smallBatt);
+				phone.setScreen(smallScreen);
 			}
 			else {
 				//phablet
-				phone = new Phablet();
+				phone.setBattery(phabBatt);
+				phone.setScreen(phabScreen);
 			}
 			if(rand.nextFloat()< 0.5) {
 				ram = new RAM(4);
@@ -172,7 +187,13 @@ public class CustomerAgent extends Agent {
 			phone.setRAM(ram);
 			phone.setStorage(storage);
 			
+			//generate random orderID
+			byte[] array = new byte[8];
+			new Random().nextBytes(array);
+			String ID = new String(array, Charset.forName("UTF-8"));
+			
 			//set order to have generated phone and random fees
+			todaysOrder.setOrderID(ID);
 			todaysOrder.setSmartPhone(phone);
 			todaysOrder.setPrice(price);
 			todaysOrder.setDaysToDeadline(dueDays);
@@ -180,29 +201,6 @@ public class CustomerAgent extends Agent {
 			todaysOrder.setPerDayPenalty(perDayFee);
 			//System.out.println(todaysOrder.toString());
 			
-		}
-	}
-	
-	public class findManufacturer extends OneShotBehaviour{
-		public findManufacturer(Agent a) {
-			super(a);
-		}
-		@Override
-		public void action() {
-			DFAgentDescription manufacturerTemplate = new DFAgentDescription();
-			ServiceDescription sd = new ServiceDescription();
-			sd.setType("manufacturer-agent");
-			manufacturerTemplate.addServices(sd);
-			try {
-				DFAgentDescription[] manufacturerList  = DFService.search(myAgent, manufacturerTemplate);
-				if(manufacturerList.length >0) {
-					manufacturerAgent = manufacturerList[0].getName(); //gets AID of manufacturer
-				}
-				
-			}catch(FIPAException e) {
-				e.printStackTrace();
-			}
-			System.out.println("manufacturer = " + manufacturerAgent);
 		}
 	}
 	
@@ -216,20 +214,20 @@ public class CustomerAgent extends Agent {
 		
 		@Override
 		public void action() {
-//			//find manufacturer
-//			DFAgentDescription manufacturerTemplate = new DFAgentDescription();
-//			ServiceDescription sd = new ServiceDescription();
-//			sd.setType("manufacturer-agent");
-//			manufacturerTemplate.addServices(sd);
-//			try {
-//				DFAgentDescription[] manufacturerList  = DFService.search(myAgent, manufacturerTemplate);
-//				if(manufacturerList.length >0) {
-//					manufacturerAgent = manufacturerList[0].getName(); //gets AID of manufacturer
-//				}
-//				
-//			}catch(FIPAException e) {
-//				e.printStackTrace();
-//			}
+			//find manufacturer
+			DFAgentDescription manufacturerTemplate = new DFAgentDescription();
+			ServiceDescription sd = new ServiceDescription();
+			sd.setType("manufacturer-agent");
+			manufacturerTemplate.addServices(sd);
+			try {
+				DFAgentDescription[] manufacturerList  = DFService.search(myAgent, manufacturerTemplate);
+				if(manufacturerList.length >0) {
+					manufacturerAgent = manufacturerList[0].getName(); //gets AID of manufacturer
+				}
+				
+			}catch(FIPAException e) {
+				e.printStackTrace();
+			}
 			//prepare query
 			RequestManufacture requestManufacture = new RequestManufacture();
 			ACLMessage requestMsg = new ACLMessage(ACLMessage.QUERY_IF);
@@ -269,6 +267,7 @@ public class CustomerAgent extends Agent {
 				responseReceived = true;
 				if(msg.getPerformative() == ACLMessage.CONFIRM) {
 					//prepare message
+					System.out.println("\n APPROVED ORDER: Customer " + myAgent.getLocalName());
 					ACLMessage sendOrderMsg = new ACLMessage(ACLMessage.REQUEST);
 					sendOrderMsg.setConversationId("customer-order-sent");
 					sendOrderMsg.setLanguage(codec.getName());
@@ -329,7 +328,7 @@ public class CustomerAgent extends Agent {
 					if(ce instanceof OrderShipped) {
 						OrderShipped receivedOrder = (OrderShipped) ce;
 						CustomerOrder order = receivedOrder.getOrder();
-						int orderID = order.getOrderID();
+						String orderID = order.getOrderID();
 						int price = (int) receivedOrder.getOrder().getPrice();
 						PaymentSent customerPayment = new PaymentSent();
 						ACLMessage payment = new ACLMessage(ACLMessage.INFORM);

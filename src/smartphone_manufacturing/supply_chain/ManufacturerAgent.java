@@ -14,6 +14,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.ArrayList;
 
 import jade.content.Concept;
@@ -53,6 +54,8 @@ public class ManufacturerAgent extends Agent {
 	private HashMap<PhoneComponent, Integer> warehouse = new HashMap<>(); // components and their qty in warehouse
 	private HashMap<AID, SupplierType> suppliers = new HashMap<>();
 	private ArrayList<CustomerOrderStatus> orderList = new ArrayList<>();
+	private ArrayList<CustomerOrderStatus> approvedOrders = new ArrayList<>();
+	private ArrayList<CustomerOrderStatus> confirmedOrders = new ArrayList<>();
 	
 	
 	//keep track of daily variable outcomes
@@ -117,9 +120,9 @@ public class ManufacturerAgent extends Agent {
 				
 				if(msg.getContent().equals("new-day")) {
 					SequentialBehaviour dailyActivity = new SequentialBehaviour();
+					dailyActivity.addSubBehaviour(new GetCustomers(myAgent));
 					dailyActivity.addSubBehaviour(new GetSuppliers(myAgent));
 					dailyActivity.addSubBehaviour(new GetSupplierDetails(myAgent));
-					dailyActivity.addSubBehaviour(new GetCustomers(myAgent));
 					dailyActivity.addSubBehaviour(new SelectCustomerOrders(myAgent));
 					dailyActivity.addSubBehaviour(new OrderComponents(myAgent));
 					dailyActivity.addSubBehaviour(new ReceiveSupplies(myAgent));
@@ -138,6 +141,7 @@ public class ManufacturerAgent extends Agent {
 		}
 	}
 	
+	@SuppressWarnings("serial")
 	public class GetSuppliers extends OneShotBehaviour{
 		
 		public GetSuppliers(Agent a) {
@@ -146,19 +150,23 @@ public class ManufacturerAgent extends Agent {
 		
 		@Override
 		public void action() {
-			DFAgentDescription supplierTemplate = new DFAgentDescription();
-			ServiceDescription sd = new ServiceDescription();
-			sd.setType("supplier-agent");
-			supplierTemplate.addServices(sd);
+			DFAgentDescription supplyTemplate = new DFAgentDescription();
+			ServiceDescription supplySd = new ServiceDescription();
+			supplySd.setType("supply-agent");
+			supplyTemplate.addServices(supplySd);
 			
 			try {
 				suppliers.clear();
-				DFAgentDescription[] supplierAgents = DFService.search(myAgent, supplierTemplate);
-				
-				for(int i=0; i<supplierAgents.length; i++) {
-					AID supplier = supplierAgents[i].getName();
-					suppliers.put(supplier, new SupplierType(supplier));
+				DFAgentDescription[] supplyAgents = DFService.search(myAgent, supplyTemplate);
+				if(supplyAgents.length > 0) {
+					for(int i=0; i<supplyAgents.length; i++) {
+						suppliers.put(supplyAgents[i].getName(), new SupplierType(supplyAgents[i].getName())); //this is the supply agents AID
+						System.out.println("supplier " + i + " " + supplyAgents[i].getName());
+					}
+				}else {
+					System.out.println("*** Cannot find suppliers ***");
 				}
+				
 			}catch(FIPAException e) {
 				e.printStackTrace();
 			}
@@ -208,7 +216,7 @@ public class ManufacturerAgent extends Agent {
 			break;
 			
 			case 1:
-				mt = MessageTemplate.and((MessageTemplate.MatchPerformative(ACLMessage.INFORM)), (MessageTemplate.MatchConversationId("supplier-details")));
+				mt = MessageTemplate.and((MessageTemplate.MatchPerformative(ACLMessage.INFORM)), (MessageTemplate.MatchConversationId("request-supplier-details")));
 				ACLMessage suppMsg = receive(mt);
 				
 				if(suppMsg != null) {
@@ -220,11 +228,11 @@ public class ManufacturerAgent extends Agent {
 							SentSupplierDetails supplierDetails = (SentSupplierDetails) ce;
 							HashMap<PhoneComponent, Integer> prices = new HashMap<>();
 							ArrayList<PhoneComponent> Components = supplierDetails.getPhoneComponents();
-							ArrayList<Integer> ComponentPrices = supplierDetails.getComponentPrices();
+							ArrayList<Long> ComponentPrices = supplierDetails.getComponentPrices();
 							
 							for(int i=0; i<Components.size(); i++) {
 								PhoneComponent component = Components.get(i);
-								Integer price = ComponentPrices.get(i);
+								int price = ((Long)ComponentPrices.get(i)).intValue();
 								prices.put(component, price);
 							}
 							
@@ -322,9 +330,18 @@ public class ManufacturerAgent extends Agent {
 							}
 							
 						}
-						for(PhoneComponent component : orderStatus.getOrder().getSmartPhone().getPhoneComponents()) {
-							cost = cost + currentSupplier.getPrices().get(component);
+						
+						//search supplier price list to get cost of order
+						for(Map.Entry<PhoneComponent, Integer> entry : currentSupplier.getPrices().entrySet()) {
+							PhoneComponent comp = entry.getKey();
+							for(PhoneComponent component : orderStatus.getOrder().getSmartPhone().getPhoneComponents()) {
+								if(comp.toString().contentEquals(component.toString())) {
+									int price = entry.getValue();
+									cost = cost + price;
+								}
+							}
 						}
+						//instead of accepting here add to list of profitable orders
 						cost = cost*(orderStatus.getOrder().getQuantity());
 						profit = (int) ((orderStatus.getOrder().getPrice()) - cost);
 						
@@ -332,9 +349,9 @@ public class ManufacturerAgent extends Agent {
 						
 						ACLMessage reply = msg.createReply();
 						if(profit > 0) {
-							orderID ++;
-							orderStatus.getOrder().setOrderID(orderID);
-							orderStatus.setOrderStatus("APPROVED");
+							//orderID ++;
+							//orderStatus.getOrder().setOrderID(orderID);
+							approvedOrders.add(orderStatus);
 							orderStatus.setSupplier(quickestSupplier);
 							orderStatus.setComponentDeliveryDate(lowestDelivery);
 							orderStatus.setPrice(cost);
@@ -393,20 +410,26 @@ public class ManufacturerAgent extends Agent {
 							Concept action = ((Action)ce).getAction();
 							if(action instanceof ManufactureOrder) {
 								ManufactureOrder manufactureOrder = (ManufactureOrder)action;
-								ArrayList<CustomerOrderStatus> approved = new ArrayList<>();
-								for(CustomerOrderStatus status : orderList) {
-									if(status.getOrder() == manufactureOrder.getOrder() && status.getOrderStatus() == "APPROVED") {
-										approved.add(status);
+								
+								for(CustomerOrderStatus approvedOrder : approvedOrders) {
+									if(manufactureOrder.getOrder().getOrderID().contentEquals(approvedOrder.getOrder().getOrderID())) {
+										confirmedOrders.add(approvedOrder);
 									}
 								}
-								orderStatus = approved.get(0);
-								
-								if(orderStatus != null) {
-									orderStatus.setOrderStatus("CONFIRMED");
-									step ++;
-								}else {
+								if(approvedOrders.size() > 0) {
+									
+									orderStatus = approvedOrders.get(0);
+									
+									if(orderStatus != null) {
+										orderStatus.setOrderStatus("CONFIRMED");
+										step ++;
+									}else {
+										step = 0;
+									}
+								}else{
 									step = 0;
 								}
+								
 							}
 						}
 						
@@ -455,6 +478,7 @@ public class ManufacturerAgent extends Agent {
 				if(response != null) {
 					//if confirmed then do following
 					if (response.getPerformative() == ACLMessage.CONFIRM) {
+						System.out.println("Components request approved by supplier");
 						ACLMessage orderReq = new ACLMessage(ACLMessage.REQUEST);
 						orderReq.setOntology(ontology.getName());
 						orderReq.setLanguage(codec.getName());
@@ -465,13 +489,14 @@ public class ManufacturerAgent extends Agent {
 							sellComps.setManufacturer(myAgent.getAID());
 							sellComps.setComponents(orderStatus.getOrder().getSmartPhone().getPhoneComponents());
 							sellComps.setQuantity(orderStatus.getOrder().getQuantity());
-							sellComps.setOrderId(orderID);
+							sellComps.setOrderId(orderStatus.getOrder().getOrderID());
 							Action request = new Action();
 							request.setAction(sellComps);
 							request.setActor(response.getSender());
 							
 							getContentManager().fillContent(orderReq, request);
 							send(orderReq);
+							System.out.println("Sell components request sent to supplier");
 							orderStatus.setComponentDeliveryDate(day + suppliers.get(supplier).getDelivery());
 							step++;
 							
@@ -523,14 +548,7 @@ public class ManufacturerAgent extends Agent {
 		
 		@Override
 		public boolean done() {
-			ArrayList<CustomerOrderStatus> approvedList = new ArrayList<>();
-			//check to see that all 'approved' orders have been tended to
-			for(CustomerOrderStatus status : orderList) {
-				if(status.getOrderStatus() == "APPROVED") {
-					approvedList.add(status);
-				}
-			}
-			return approvedList.size() == 0 && step == 0; 
+			return approvedOrders.size() == 0 && step == 0; 
 		}	
 	} // end of order components behaviour
 	
@@ -539,22 +557,24 @@ public class ManufacturerAgent extends Agent {
 		public ReceiveSupplies(Agent a) {
 			super(a);
 			//put inside here as it cannot be in behaviour outside of action
-			for(CustomerOrderStatus status : orderList) {
-				if(status.getComponentDeliveryDate() == day) {
-					toReceive.add(status);
-				}
-			}
 		}
 		private int suppliesReceived = 0;
 		private ArrayList<CustomerOrderStatus> toReceive;
 		
 		@Override 
 		public void action() {
+			System.out.println("HERE!!!!!!!");
+			for(CustomerOrderStatus status : approvedOrders) {
+				System.out.println("delivery data: " + status.getComponentDeliveryDate());
+				if(status.getComponentDeliveryDate() == day) {
+					toReceive.add(status);
+				}
+			}
 			 MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM), MessageTemplate.MatchConversationId("sell-components-response"));
 			 ACLMessage receiveMsg = receive(mt);
 			 if(receiveMsg != null) {
 				 int quantity;
-				 int orderID;
+				 String orderID;
 				 
 				 try {
 					 ContentElement ce = null; 

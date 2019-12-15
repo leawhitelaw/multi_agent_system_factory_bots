@@ -10,8 +10,8 @@ public class SupplierType {
 	private int delivery;
 	private HashMap<PhoneComponent, Integer> prices;
 	
-	public SupplierType(AID aid) {
-		this.supplier = aid;
+	public SupplierType(AID id) {
+		this.supplier = id;
 	}
 
 	public AID getSupplier() {

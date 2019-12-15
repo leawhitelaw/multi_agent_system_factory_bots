@@ -57,10 +57,10 @@ public class SmartPhone {
 		return components;
 	}
 	
-	@Override
-	public String toString() {
-		String string = String.format("RAM: %d, Storage: %d, Screen: %s, Battery: %s", ram, storage, screen, battery);
-		return string;
-	}
+//	@Override
+//	public String toString() {
+//		String string = String.format("RAM: %d, Storage: %d, Screen: %s, Battery: %s", ram, storage, screen, battery);
+//		return string;
+//	}
 
 }

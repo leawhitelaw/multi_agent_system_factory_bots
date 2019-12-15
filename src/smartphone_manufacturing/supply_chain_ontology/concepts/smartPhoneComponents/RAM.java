@@ -30,5 +30,15 @@ public class RAM extends PhoneComponent {
 	public String toString() {
 		return "RAM: " + this.gb;
 	}
+	
+	@Override
+	public boolean equals(Object ram) {
+	    if (!(ram instanceof RAM)) {
+	        return false;
+	    }
+
+	    RAM test = (RAM) ram;
+	    return this.gb == test.gb;
+	  }
 
 }

@@ -7,7 +7,7 @@ import jade.content.onto.Ontology;
 public class ManufacturingOntology extends BeanOntology {
 
 	private static final long serialVersionUID = 1L;
-	private static Ontology instance = new ManufacturingOntology("ontology");
+	private static Ontology instance = new ManufacturingOntology("my_ontology");
 	  
 	public static Ontology getInstance(){
 	    return instance;
@@ -16,11 +16,11 @@ public class ManufacturingOntology extends BeanOntology {
 	private ManufacturingOntology(String name) {
 	    super(name);  
 	    try {
-	    	System.out.println("ontology added");
 	      add("smartphone_manufacturing.supply_chain_ontology.concepts");
 	      add("smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents");
 	      add("smartphone_manufacturing.supply_chain_ontology.actions");
 	      add("smartphone_manufacturing.supply_chain_ontology.predicates");
+	      System.out.println("ontology added");
 	    } catch (BeanOntologyException e) {
 	      e.printStackTrace();
 	    }

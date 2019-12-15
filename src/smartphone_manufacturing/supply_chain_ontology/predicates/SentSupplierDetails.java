@@ -11,7 +11,7 @@ public class SentSupplierDetails implements Predicate {
 	private static final long serialVersionUID = 1L;
 	
 	private AID supplier;
-	private ArrayList<Integer> componentPrices; //this will be used as the value
+	private ArrayList<Long> componentPrices; //this will be used as the value
 	private ArrayList<PhoneComponent> phoneComponents; //this will be used as key (hashmaps not supported)
 	private int devlieryDays;
 	
@@ -25,11 +25,11 @@ public class SentSupplierDetails implements Predicate {
 	}
 	
 	@Slot(mandatory = true)
-	public ArrayList<Integer> getComponentPrices() {
+	public ArrayList<Long> getComponentPrices() {
 		return componentPrices;
 	}
 	
-	public void setComponentPrices(ArrayList<Integer> componentPrices) {
+	public void setComponentPrices(ArrayList<Long> componentPrices) {
 		this.componentPrices = componentPrices;
 	}
 	

@@ -1,5 +1,7 @@
 package smartphone_manufacturing.supply_chain_ontology.concepts;
 
+import java.util.Objects;
+
 import jade.content.Concept;
 import jade.content.onto.annotations.Slot;
 
@@ -10,18 +12,18 @@ import jade.content.onto.annotations.Slot;
 public class CustomerOrder implements Concept{
 	public static final long serialVersionUID = 1L;
 	
-	private int orderID;
+	private String orderID;
 	private SmartPhone phone;
 	private int quantity;
 	private int price;
 	private int daysToDeadline;
 	private int perDayPenalty;
 	
-	public int getOrderID() {
+	public String getOrderID() {
 		return orderID;
 	}
 	
-	public void setOrderID(int ID) {
+	public void setOrderID(String ID) {
 		this.orderID = ID;
 	}
 	
@@ -44,7 +46,7 @@ public class CustomerOrder implements Concept{
 	}
 	
 	@Slot(mandatory = true)
-	public double getPrice() {
+	public int getPrice() {
 		return price;
 	}
 	

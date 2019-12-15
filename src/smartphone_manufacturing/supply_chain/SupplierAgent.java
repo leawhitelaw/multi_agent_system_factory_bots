@@ -51,25 +51,30 @@ public class SupplierAgent extends Agent{
 	
 	@Override
 	protected void setup() {
-		//add agent to yellow pages
+		getContentManager().registerLanguage(codec);
+		getContentManager().registerOntology(ontology);
+
+		//add agent to yp
 		DFAgentDescription dfd = new DFAgentDescription();
 		dfd.setName(getAID());
 		ServiceDescription sd = new ServiceDescription();
 		sd.setType("supply-agent");
-		sd.setName(getLocalName() + "-supply-agent");
+		sd.setName(getLocalName() + "-supplier-agent");
 		dfd.addServices(sd);
+		
 		try {
 			DFService.register(this, dfd);
-		}
-		catch(FIPAException e) {
+		}catch(FIPAException e) {
 			e.printStackTrace();
 		}
 		Object[] args = getArguments();
 		if (args != null && args.length > 0) {
 			if((int)args[0] == 1) {
+				System.out.println("SUP ARGS = 1!");
 				phoneComponents = SupplierDetails.getSupplierOneComponents();
 				deliveryDays = SupplierDetails.getSupplierOneDelivery();
 			}else if((int)args[0] == 2) {
+				System.out.println("SUP ARGS = 2!");
 				phoneComponents = SupplierDetails.getSupplierTwoComponents();
 				deliveryDays = SupplierDetails.getSupplierTwoDelivery();
 			}
@@ -106,8 +111,20 @@ public class SupplierAgent extends Agent{
 					tickerAgent = msg.getSender(); //AID of ticker agent
 				}
 				//do computation here
-				if(msg.getContent().equals("new day")) {
+				if(msg.getContent().equals("new-day")) {
+					 CyclicBehaviour sendDetails = new SendSupplierDetails(myAgent);
+					 CyclicBehaviour respond = new RespondToRequests(myAgent);
+					 CyclicBehaviour receive = new ReceiveOrders(myAgent);
 					myAgent.addBehaviour(new FindManufacturer(myAgent));
+					myAgent.addBehaviour(sendDetails);
+					myAgent.addBehaviour(respond);
+					myAgent.addBehaviour(receive);
+					ArrayList<Behaviour> removeBehaviours = new ArrayList<>();
+					removeBehaviours.add(sendDetails);
+					removeBehaviours.add(respond);
+					removeBehaviours.add(receive);
+					myAgent.addBehaviour(new SendComponents(myAgent));
+					myAgent.addBehaviour(new EndOfDay(myAgent, removeBehaviours));
 				}
 				else {
 					//termination message to end simulation
@@ -154,7 +171,7 @@ public class SupplierAgent extends Agent{
 		@Override
 		public void action() {
 			ArrayList<PhoneComponent> components = new ArrayList<>();
-			ArrayList<Integer> prices = new ArrayList<>();
+			ArrayList<Long> prices = new ArrayList<>();
 			MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.REQUEST),MessageTemplate.MatchConversationId("request-supplier-details"));
 			ACLMessage msg = myAgent.receive(mt);
 			if(msg!= null) {
@@ -171,7 +188,7 @@ public class SupplierAgent extends Agent{
 								PhoneComponent component = entry.getKey();
 								int price = entry.getValue();
 								components.add(component);
-								prices.add(price);
+								prices.add((long) price);
 							}
 							SentSupplierDetails sendDetails = new SentSupplierDetails();
 							sendDetails.setComponentPrices(prices);
@@ -260,7 +277,7 @@ public class SupplierAgent extends Agent{
 							ComponentsOrder order = new ComponentsOrder();
 							ArrayList<PhoneComponent> components = componentsOrder.getComponents();
 							int quantity = componentsOrder.getQuantity();
-							int orderID = componentsOrder.getOrderId();
+							String orderID = componentsOrder.getOrderId();
 							order.setBuyer(msg.getSender());
 							order.setDelivery(day + deliveryDays);
 							order.setComponents(components);
@@ -297,6 +314,7 @@ public class SupplierAgent extends Agent{
 		public void action() {
 			for(ComponentsOrder order: orders) {
 				if (order.getDelivery() == day) {
+					System.out.println("HERE!!!!!!!");
 					ComponentsSent sendComponents= new ComponentsSent();
 					ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 			        msg.setLanguage(codec.getName());

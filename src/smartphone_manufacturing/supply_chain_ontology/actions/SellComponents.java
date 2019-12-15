@@ -14,7 +14,7 @@ public class SellComponents implements AgentAction {
 	private static final long serialVersionUID = 1L;
 	
 	private ArrayList<PhoneComponent> phoneComponents;
-	private int orderID;
+	private String orderID;
 	private int quantity;
 	private AID manufacturer;
 	
@@ -28,10 +28,10 @@ public class SellComponents implements AgentAction {
 	  }
 	
 	@Slot(mandatory = true)
-	  public int getOrderId() {
+	  public String getOrderId() {
 	    return orderID;
 	  }
-	  public void setOrderId(int orderID) {
+	  public void setOrderId(String orderID) {
 	    this.orderID = orderID;
 	  }
 	  

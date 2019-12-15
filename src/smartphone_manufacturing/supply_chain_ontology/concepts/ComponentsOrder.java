@@ -9,17 +9,17 @@ import jade.core.AID;
 public class ComponentsOrder implements Concept{
 	
 	private static final long serialVersionUID = 1L;
-	private int orderID;
+	private String orderID;
 	private int quantity;
 	private int delivery;
 	private ArrayList<PhoneComponent> components;
 	private AID buyer;
 	
-	public int getOrderID() {
+	public String getOrderID() {
 		return orderID;
 	}
 	
-	public void setOrderID(int orderID) {
+	public void setOrderID(String orderID) {
 		this.orderID = orderID;
 	}
 	

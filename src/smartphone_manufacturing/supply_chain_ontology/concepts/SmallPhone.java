@@ -14,14 +14,14 @@ public class SmallPhone extends SmartPhone {
 		this.screen = new SmallScreen();
 	}
 	
-	@Slot(mandatory = true)
-	public SmallBattery getBattery() {
-		return battery;
-	}
-	
-	public void setBattery(SmallBattery battery) {
-		this.battery = battery;
-	}
+//	@Slot(mandatory = true)
+//	public SmallBattery getBattery() {
+//		return battery;
+//	}
+//	
+//	public void setBattery(SmallBattery battery) {
+//		this.battery = battery;
+//	}
 	
 	@Slot(mandatory = true)
 	public SmallScreen getScreen() {

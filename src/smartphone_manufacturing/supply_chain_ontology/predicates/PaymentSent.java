@@ -8,8 +8,8 @@ public class PaymentSent implements Predicate {
 	
 	private static final long serialVersionUID = 1L;
 	private AID buyer;
-	private double price;
-	private int orderID;
+	private int price;
+	private String orderID;
 	
 	@Slot(mandatory = true)
 	public AID getBuyer() {
@@ -20,11 +20,11 @@ public class PaymentSent implements Predicate {
 		this.buyer = buyer;
 	}
 	
-	public int getOrderID() {
+	public String getOrderID() {
 		return orderID;
 	}
 	
-	public void setOrderID(int orderid) {
+	public void setOrderID(String orderid) {
 		this.orderID = orderid;
 	}
 	
@@ -33,7 +33,7 @@ public class PaymentSent implements Predicate {
 		return price;
 	}
 	
-	public void setPrice(double price) {
+	public void setPrice(int price) {
 		this.price = price;
 	}
 
