@@ -333,7 +333,7 @@ public class ManufacturerAgent extends Agent {
 						int cost = 0; //cost of order by calculating component prices from quickest supplier
 						int lowestDelivery = 10; //this is higher than both suppliers delivery days
 						
-						//part of strategy - use quickest supplier
+						// use quickest supplier
 						for (SupplierType supplier : suppliers.values()) {
 							int deliveryDays = supplier.getDelivery();
 							if(deliveryDays < lowestDelivery) {
@@ -354,11 +354,9 @@ public class ManufacturerAgent extends Agent {
 								}
 							}
 						}
-						//instead of accepting here add to list of profitable orders
 						cost = cost*(orderStatus.getOrder().getQuantity());
 						profit = (int) ((orderStatus.getOrder().getPrice()) - cost);
 						
-						//set Max profit and decide if profit is close to that
 						
 						ACLMessage reply = msg.createReply();
 						if(profit > 0) {
@@ -599,9 +597,7 @@ public class ManufacturerAgent extends Agent {
 						 ArrayList<PhoneComponent> phoneComponents = componentsSent.getPhoneComponents();
 						 wHquantity = componentsSent.getQty();
 						 orderID = componentsSent.getOrderID();
-						 //System.out.println("component " + warehouse.get(phoneComponents.get(0)));
 						 for(PhoneComponent component : phoneComponents) {
-							 //System.out.println("component: " + component + " hashcode: " + component.hashCode());
 							 if(warehouse.containsKey(component.hashCode())) {
 								 int currentQuantity = warehouse.get(component.hashCode());
 								 warehouse.put(component.hashCode(), wHquantity + currentQuantity);
@@ -654,6 +650,7 @@ public class ManufacturerAgent extends Agent {
 			case 0:
 				System.out.println(warehouse);
 				for(CustomerOrderStatus status: gotComponents) {
+					if(todaysPhoneQuantity + status.getOrder().getQuantity() > 50) continue;
 					ArrayList<PhoneComponent> phoneComponents = status.getOrder().getSmartPhone().getPhoneComponents();
 					int quantity = status.getOrder().getQuantity();
 						boolean warehouseHasComponents = true;
@@ -665,34 +662,36 @@ public class ManufacturerAgent extends Agent {
 							}
 						}
 						
-						if(warehouseHasComponents != false) {
-							//assemble and send order to customer
-							OrderShipped sendOrder = new OrderShipped();
-							ACLMessage sendMsg = new ACLMessage(ACLMessage.INFORM);
-							sendMsg.setOntology(ontology.getName());
-							sendMsg.setLanguage(codec.getName());
-							sendMsg.addReceiver(status.getCustomer());
-							sendMsg.setConversationId("send-phones-to-customer");
-							sendOrder.setManufacturer(myAgent.getAID());
-							sendOrder.setOrder(status.getOrder());
-							try {
-								//remove components from warehouse (assemble)
-								for(PhoneComponent component : phoneComponents) {
-									int currQty = warehouse.get(component.hashCode());
-									warehouse.put(component.hashCode(), (currQty - quantity));
+							if(warehouseHasComponents != false) {
+								//assemble and send order to customer
+								OrderShipped sendOrder = new OrderShipped();
+								ACLMessage sendMsg = new ACLMessage(ACLMessage.INFORM);
+								sendMsg.setOntology(ontology.getName());
+								sendMsg.setLanguage(codec.getName());
+								sendMsg.addReceiver(status.getCustomer());
+								sendMsg.setConversationId("send-phones-to-customer");
+								sendOrder.setManufacturer(myAgent.getAID());
+								sendOrder.setOrder(status.getOrder());
+								try {
+									//remove components from warehouse (assemble)
+									for(PhoneComponent component : phoneComponents) {
+										int currQty = warehouse.get(component.hashCode());
+										warehouse.put(component.hashCode(), (currQty - quantity));
+										todaysPhoneQuantity += status.getOrder().getQuantity();
+									}
+									//ship order
+									getContentManager().fillContent(sendMsg, sendOrder);
+									send(sendMsg);
+									awaitingPayment++;
+								}catch(CodecException ce) {
+									ce.printStackTrace();
+								}catch(OntologyException oe) {
+									oe.printStackTrace();
+								}catch(Exception e) {
+									e.printStackTrace();
 								}
-								//ship order
-								getContentManager().fillContent(sendMsg, sendOrder);
-								send(sendMsg);
-								awaitingPayment++;
-							}catch(CodecException ce) {
-								ce.printStackTrace();
-							}catch(OntologyException oe) {
-								oe.printStackTrace();
-							}catch(Exception e) {
-								e.printStackTrace();
 							}
-						}
+						
 				}
 				
 				step++;
@@ -709,10 +708,10 @@ public class ManufacturerAgent extends Agent {
 						
 						if (ce instanceof PaymentSent) {
 							PaymentSent payment = (PaymentSent) ce;
-							//System.out.println("PAYMENT DETAILS : " + payment.getPrice());
 							for(CustomerOrderStatus status : orderList) {
 								if(status.getOrder().getOrderID() == payment.getOrderID()) {
 									status.setOrderCompleted(true);
+									gotComponents.remove(status);
 								}
 							}
 							todaysProfit += payment.getPrice();
@@ -757,9 +756,8 @@ public class ManufacturerAgent extends Agent {
 			//calculate late fees !!!!!! check
 			for(CustomerOrderStatus status : orderList) {
 				int deadlineDay = status.getDayOrdered() + status.getOrder().getDaysToDeadline();
-				if(day >= deadlineDay) {
-					int daysToPayFor = day - deadlineDay;
-					int cost = daysToPayFor * status.getOrder().getPerDayPenalty();
+				if(day > deadlineDay) {
+					int cost = status.getOrder().getPerDayPenalty();
 					latePenalty +=cost;
 				}
 				
@@ -789,6 +787,7 @@ public class ManufacturerAgent extends Agent {
 			latePenalty = 0;
 			storageCost = 0;
 			costOfSupplies = 0;
+			todaysPhoneQuantity = 0;
 			ACLMessage doneMsg = new ACLMessage(ACLMessage.INFORM);
 			doneMsg.setContent("done");
 			doneMsg.addReceiver(tickerAgent);
