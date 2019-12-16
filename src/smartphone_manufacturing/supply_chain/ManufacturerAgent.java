@@ -366,13 +366,13 @@ public class ManufacturerAgent extends Agent {
 
 						ACLMessage reply = msg.createReply();
 						if(profit > 0 ) {
-							approvedOrders.add(orderStatus);
+							System.out.println("ORDER ACCEPTED: " + order.getOrderID());
 							orderStatus.setSupplier(quickestSupplier);
-							//orderStatus.setComponentDeliveryDate(day + lowestDelivery);
 							orderStatus.setPrice(cost);
 							orderStatus.setDayOrdered(day);
 							orderStatus.setOrderCompleted(false);
 							orderList.add(orderStatus);
+							approvedOrders.add(orderStatus);
 							accepted++;
 							reply.setPerformative(ACLMessage.CONFIRM);
 						}else {
@@ -380,7 +380,6 @@ public class ManufacturerAgent extends Agent {
 						}
 						reply.setConversationId("customer-order-response");
 						myAgent.send(reply);
-						approvedOrdersNum = approvedOrders.size();
 						replies++;
 					}else {
 						System.out.println("Agent: " + myAgent.getAID() + "Received wrong msg from customer");
@@ -393,14 +392,11 @@ public class ManufacturerAgent extends Agent {
 			}else {
 				block();
 			}
+			approvedOrdersNum = approvedOrders.size();
 		}
 
 		@Override
 		public boolean done() {
-			if(replies == customers.size()) {
-				//System.out.println("CUSTOMER ORDERS ACCEPTED TODAY:" + accepted);
-				//System.out.println("REPLIES TODAY: " + replies);
-			}
 			return replies == customers.size();
 		}	
 	}
@@ -408,10 +404,8 @@ public class ManufacturerAgent extends Agent {
 	public class ReceiveCustomerOrders extends Behaviour{
 		private int received = 0;
 		private int approvedToConfirmed = 0;
-		private int numApproved;
 		public ReceiveCustomerOrders(Agent a) {
 			super(a);
-			//System.out.println("ReceiveCustomerOrders STARTED");
 		}
 
 		@Override
@@ -421,7 +415,6 @@ public class ManufacturerAgent extends Agent {
 				ACLMessage customerMsg = receive(mt);
 
 				if(customerMsg != null) {
-					//System.out.println("do u get here???");
 					try {
 						ContentElement ce = null;
 						ce = getContentManager().extractContent(customerMsg);
@@ -435,13 +428,11 @@ public class ManufacturerAgent extends Agent {
 									for(CustomerOrderStatus approvedOrder : approvedOrders) {
 										if(manufactureOrder.getOrder().getOrderID().contentEquals(approvedOrder.getOrder().getOrderID())) {
 											confirmedOrders.add(approvedOrder);
-											//System.out.println("Order added to confirmed");
 											approvedToConfirmed++;
 										}
 									}
-									if(approvedToConfirmed == approvedOrders.size()) {
+									if(approvedOrdersNum == approvedToConfirmed) {
 										approvedOrders.clear();
-										numApproved = approvedToConfirmed;
 									}
 								}
 
@@ -464,10 +455,7 @@ public class ManufacturerAgent extends Agent {
 
 		@Override
 		public boolean done() {
-			if (received == numApproved) {
-				//System.out.println("ReceiveCustomerOrders DONE");
-			}
-			return received == approvedToConfirmed;
+			return received == approvedOrdersNum;
 		}	
 	}
 
@@ -476,31 +464,20 @@ public class ManufacturerAgent extends Agent {
 
 		public OrderComponents(Agent a) {
 			super(a);
-			//System.out.println("OrderComponents STARTED");
 		}
 
 		private int step = 0;
 		private CustomerOrderStatus orderStatus;
 		private AID supplier;
-		//private int orderedComponents;
 
 		@Override
 		public void action() {
-//			try {
-//				Thread.sleep(30);
-//			} catch (InterruptedException e1) {
-//				// TODO Auto-generated catch block
-//				e1.printStackTrace();
-//			}
-			//System.out.println("CONFIRMED ORDERS: " + confirmedOrders);
 			switch(step) {
 			case 0:
 				if (confirmedOrders.size() == 0) {
-					//System.out.println("No components to order");
 					break;
 				}
 				orderStatus = confirmedOrders.get(0);
-				//System.out.println("requesting components");
 				supplier = orderStatus.getSupplier();
 				ComponentsInStock componentsInStock = new ComponentsInStock(); //new request for components
 
@@ -515,7 +492,6 @@ public class ManufacturerAgent extends Agent {
 					orderStatus.setComponentDeliveryDate(day + componentDelivery);
 					componentsInStock.setComponents(orderStatus.getOrder().getSmartPhone().getPhoneComponents());
 					getContentManager().fillContent(askSupplierMsg, componentsInStock);
-					//System.out.println("SENDING COMPONENT REQUEST TO SUPPLIER WITH ORDER ID: ");
 					send(askSupplierMsg);
 					step++;
 				}catch(CodecException ce) {
@@ -532,7 +508,6 @@ public class ManufacturerAgent extends Agent {
 						MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM), MessageTemplate.MatchPerformative(ACLMessage.DISCONFIRM)), MessageTemplate.MatchConversationId("sell-components-response"));
 				ACLMessage response = receive(responseMt);
 				if(response != null) {
-					System.out.println("supplier responded ");
 					//if confirmed then do following
 					if (response.getPerformative() == ACLMessage.CONFIRM) {
 						ACLMessage orderReq = new ACLMessage(ACLMessage.REQUEST);
@@ -545,7 +520,6 @@ public class ManufacturerAgent extends Agent {
 							sellComps.setManufacturer(myAgent.getAID());
 							sellComps.setComponents(orderStatus.getOrder().getSmartPhone().getPhoneComponents());
 							sellComps.setQuantity(orderStatus.getOrder().getQuantity());
-							System.out.println("SETTING ORDERID FOR COMPONENTS REQUEST: " + orderStatus.getOrder().getOrderID() + " and DELIVERY DAY " + orderStatus.getComponentDeliveryDate());
 							sellComps.setOrderId(orderStatus.getOrder().getOrderID());
 							Action request = new Action();
 							request.setAction(sellComps);
@@ -553,7 +527,7 @@ public class ManufacturerAgent extends Agent {
 
 							getContentManager().fillContent(orderReq, request);
 							send(orderReq);
-							System.out.println(confirmedOrders.get(0).toString());
+							//System.out.println(confirmedOrders.get(0).toString());
 							confirmedOrders.remove(0);
 							step++;
 
@@ -577,7 +551,6 @@ public class ManufacturerAgent extends Agent {
 				break;
 
 			case 2:
-				//System.out.println("sending order for comps");
 				//order has been  sent for components 
 				int supplyCost = orderStatus.getPrice();
 				String orderID = orderStatus.getOrder().getOrderID();
@@ -609,10 +582,6 @@ public class ManufacturerAgent extends Agent {
 
 		@Override
 		public boolean done() {
-			System.out.println("OrderComponents DONE CHECK: " + confirmedOrders.size() + " " + step);
-			if (confirmedOrders.size() == 0 && step == 0) {
-				System.out.println("OrderComponents DONE");
-			}
 			return accepted == 0 || (confirmedOrders.size() == 0 && step == 0); 
 		}	
 	} // end of order components behaviour
@@ -626,13 +595,9 @@ public class ManufacturerAgent extends Agent {
 			super(a);
 			for(CustomerOrderStatus status : orderList) {	
 				if(status.getComponentDeliveryDate() == day) {
-					//System.out.println("DUE TO ARRIVE TODAY: " + status);
-					//System.out.println(status.getOrder().toString());
-					//System.out.println("adding to list " + status);
 					toReceive.add(status);
 				}
 			}
-			//System.out.println("before receiving supplies - received size: " + toReceive.size());
 		}
 
 
@@ -665,17 +630,11 @@ public class ManufacturerAgent extends Agent {
 							}
 
 							for(CustomerOrderStatus status : toReceive) {
-								//System.out.println("in to receivec loop **************8");
-								System.out.println("STATUS ID: " + status.getOrder().getOrderID() + " & ORDERID: " + orderID);
 								if(status.getOrder().getOrderID().equals(orderID)) {
-									System.out.println("in IF loop **************8");
 									gotComponents.add(status);
 								}
 							}
-							//System.out.println("Got components: " + gotComponents.size() + gotComponents);
-							//System.out.println("toReceive " + toReceive.size());
 							suppliesReceived ++;
-							//System.out.println("supps received " + suppliesReceived);
 
 						}else {
 							System.out.println("Agent: " + myAgent.getAID() + "Received wrong msg from supplier");
@@ -688,7 +647,6 @@ public class ManufacturerAgent extends Agent {
 						e.printStackTrace();
 					}
 				} else if (toReceive.size() > 0) {
-					//System.out.println("blockinnng");
 					block();
 				}
 			}
@@ -697,9 +655,6 @@ public class ManufacturerAgent extends Agent {
 
 		@Override
 		public boolean done() {
-			if(suppliesReceived == toReceive.size()) {
-				//System.out.println("ReceiveSupplies DONE");
-			}
 			return suppliesReceived == toReceive.size();
 		}
 	} // end of receive supplies behaviour
@@ -711,37 +666,29 @@ public class ManufacturerAgent extends Agent {
 
 		public MakeOrder(Agent a) {
 			super(a);
-			//System.out.println("MakeOrder ACTION STARTED");
-//			if(gotComponents.size() == 0) {
-//				step += 2;
-//			}
 		}
 
 
 		@Override
 		public void action() {
-			//System.out.println(" ***** AFTER ACTION *****");
-			//System.out.println("WHY NOT DONE");
 			
 			switch(step) {
 			case 0:
-				System.out.println("about to order!!");
-//				if(accepted == 0) {
-//					step++;
-//				}
-				//System.out.println(warehouse);
+
+				System.out.println("WH BEFORE: " + warehouse);
 				for(CustomerOrderStatus status: gotComponents) {
-					System.out.println("dOES IT EXIST THOUGH ? ? ? ? ? !!");
 					if(todaysPhoneQuantity + status.getOrder().getQuantity() > 50) {
-						//System.out.println("decided not to order!!");
+						System.out.println("decided not to order!!");
 						continue;
 					}
 					ArrayList<PhoneComponent> phoneComponents = status.getOrder().getSmartPhone().getPhoneComponents();
 					int quantity = status.getOrder().getQuantity();
+					System.out.println("QUANTITY = " + quantity);
 					boolean warehouseHasComponents = true;
 					for(PhoneComponent component : phoneComponents) {
 						if(!warehouse.containsKey(component.hashCode()) || (warehouse.containsKey(component.hashCode()) 
 								&& warehouse.get(component.hashCode()) < quantity)){
+							System.out.println("REJECTED");
 							warehouseHasComponents = false;
 							break; //stop above being overwritten
 						}
@@ -781,7 +728,7 @@ public class ManufacturerAgent extends Agent {
 					}
 
 				}
-
+				System.out.println("WH AFTER: " + warehouse);
 				step++;
 				//break;
 
@@ -802,12 +749,13 @@ public class ManufacturerAgent extends Agent {
 								for(CustomerOrderStatus status : orderList) {
 									//System.out.println("- ORDER ID: " + status.getOrder().getOrderID());
 									if(status.getOrder().getOrderID().equals(payment.getOrderID())) {
+										System.out.println("ORDER ID: " + payment.getOrderID() + " completed.");
 										status.setOrderCompleted(true);
 										gotComponents.remove(status);
 									}
 								}
 								todaysProfit += payment.getPrice();
-								System.out.println("ADDING TO PROFIT: " + payment.getPrice() + " from customer " + payment.getBuyer().getLocalName());
+								//System.out.println("ADDING TO PROFIT: " + payment.getPrice() + " from customer " + payment.getBuyer().getLocalName());
 								awaitingPayment --;
 							}else {
 								System.out.println("Agent: " + myAgent.getAID().getLocalName() + "Received wrong msg from customer");
@@ -847,13 +795,15 @@ public class ManufacturerAgent extends Agent {
 			//calculate warehouse totals
 			for(Integer component : warehouse.keySet()) {
 				int cost = warehouse.get(component) * 5;
+//				System.out.println("added cost " + warehouse.get(component));
+//				System.out.println("added component " + component);
 				storageCost += cost;
 			}
 
 			//calculate late fees !!!!!! check
 			for(CustomerOrderStatus status : orderList) {
 				int deadlineDay = status.getDayOrdered() + status.getOrder().getDaysToDeadline();
-				if(day > deadlineDay) {
+				if(status.getOrderCompleted()!=true && day > deadlineDay) {
 					int cost = status.getOrder().getPerDayPenalty();
 					latePenalty +=cost;
 				}
@@ -876,7 +826,8 @@ public class ManufacturerAgent extends Agent {
 				}
 			}
 
-			System.out.printf("\n Day %d, \nTodays profit = £%d, \nTotal profit = £%d\n", day,todaysProfit, totalProfit );
+			System.out.printf("\n Day %d, \nTodays warehouse fee = %d, \nTodays late fee = %d \nTodays profit = £%d, \nTotal profit = £%d\n", day, storageCost, latePenalty, todaysProfit, totalProfit );
+			System.out.println("Phones built: " + todaysPhoneQuantity);
 		}
 	}
 
@@ -900,7 +851,7 @@ public class ManufacturerAgent extends Agent {
 				doneMsg.addReceiver(supplier);
 			}
 			myAgent.send(doneMsg);
-			System.out.println("MANU DONE!");
+			//System.out.println("MANU DONE!");
 			day++;
 		}
 	}

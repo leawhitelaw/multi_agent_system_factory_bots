@@ -380,7 +380,7 @@ public class SupplierAgent extends Agent{
 				for(Behaviour behaviour : behaviours) {
 					myAgent.removeBehaviour(behaviour);
 				}
-				System.out.println("SUP DONE!");
+				//System.out.println("SUP DONE!");
 				myAgent.removeBehaviour(this);
 			}else {
 				block();
