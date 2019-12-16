@@ -273,7 +273,7 @@ public class CustomerAgent extends Agent {
 				responseReceived = true;
 				if(msg.getPerformative() == ACLMessage.CONFIRM) {
 					//prepare message
-					System.out.println(getAID().getLocalName() + " order confirmed");
+					//System.out.println(getAID().getLocalName() + " order confirmed");
 					ACLMessage sendOrderMsg = new ACLMessage(ACLMessage.REQUEST);
 					sendOrderMsg.setConversationId("customer-order-sent");
 					sendOrderMsg.setLanguage(codec.getName());
@@ -345,7 +345,6 @@ public class CustomerAgent extends Agent {
 						customerPayment.setBuyer(myAgent.getAID());
 						customerPayment.setOrderID(orderID);
 						customerPayment.setPrice(price);
-						System.out.println(getAID().getLocalName() + " order received");
 						getContentManager().fillContent(payment, customerPayment);
 						send(payment); // send payment to manufacturer
 						requestedOrders.remove(order); //remove order from orders
@@ -377,7 +376,6 @@ public class CustomerAgent extends Agent {
 			doneMsg.setContent("done");
 			doneMsg.addReceiver(tickerAgent);
 			myAgent.send(doneMsg);
-			//System.out.println("CUSTOMER DONE!");
 			day++;
 		}
 	}

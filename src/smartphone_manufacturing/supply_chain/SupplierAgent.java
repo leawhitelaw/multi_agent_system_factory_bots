@@ -287,7 +287,6 @@ public class SupplierAgent extends Agent{
 							order.setComponents(components);
 							order.setOrderID(orderID);
 							order.setQuantity(quantity);
-							System.out.println("order request received by supplier WITH ID: " + order.getOrderID() + "with delivery " + day + deliveryDays);
 							orders.add(order);
 
 						}
@@ -327,7 +326,6 @@ public class SupplierAgent extends Agent{
 
 			for(ComponentsOrder order: orders) {
 				if (order.getDelivery() == day) {
-					System.out.println("components TODAY order: " + order.toString());
 					ComponentsSent sendComponents= new ComponentsSent();
 
 					ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
@@ -380,7 +378,6 @@ public class SupplierAgent extends Agent{
 				for(Behaviour behaviour : behaviours) {
 					myAgent.removeBehaviour(behaviour);
 				}
-				//System.out.println("SUP DONE!");
 				myAgent.removeBehaviour(this);
 			}else {
 				block();

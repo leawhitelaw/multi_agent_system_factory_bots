@@ -367,7 +367,6 @@ public class ManufacturerAgent extends Agent {
 
 						ACLMessage reply = msg.createReply();
 						if(profit > 0 && orderStatus.getOrder().getDaysToDeadline() > 1) {
-							System.out.println("ORDER ACCEPTED: " + order.getOrderID());
 							orderStatus.setSupplier(quickestSupplier);
 							orderStatus.setPrice(cost);
 							orderStatus.setDayOrdered(day);
@@ -478,12 +477,9 @@ public class ManufacturerAgent extends Agent {
 				if (confirmedOrders.size() == 0) {
 					break;
 				}
-				//sort confirmed orders by most prominent deadline to avoid delivery costs 
+				//sort confirmed orders by most prominent deadline then profit to avoid delivery costs 
 				Collections.sort(confirmedOrders, CustomerOrderStatus.deliveryDays);
-//				for(CustomerOrderStatus order : confirmedOrders ) {
-//					System.out.println(" delivery due day = " + order.getOrder().getDaysToDeadline());
-//				}
-				//Collections.sort(confirmedOrders.get, Collections.reverseOrder());
+				Collections.sort(confirmedOrders, CustomerOrderStatus.profit);
 				orderStatus = confirmedOrders.get(0);
 				supplier = orderStatus.getSupplier();
 				ComponentsInStock componentsInStock = new ComponentsInStock(); //new request for components
@@ -683,12 +679,10 @@ public class ManufacturerAgent extends Agent {
 				Collections.sort(confirmedOrders, CustomerOrderStatus.profit);
 				for(CustomerOrderStatus status: gotComponents) {
 					if(todaysPhoneQuantity + status.getOrder().getQuantity() > 50) {
-						System.out.println("decided not to order!!");
 						continue;
 					}
 					ArrayList<PhoneComponent> phoneComponents = status.getOrder().getSmartPhone().getPhoneComponents();
 					int quantity = status.getOrder().getQuantity();
-					System.out.println("QUANTITY = " + quantity);
 					boolean warehouseHasComponents = true;
 					for(PhoneComponent component : phoneComponents) {
 						if(!warehouse.containsKey(component.hashCode()) || (warehouse.containsKey(component.hashCode()) 
@@ -749,7 +743,6 @@ public class ManufacturerAgent extends Agent {
 								PaymentSent payment = (PaymentSent) ce;
 								for(CustomerOrderStatus status : orderList) {
 									if(status.getOrder().getOrderID().equals(payment.getOrderID())) {
-										System.out.println("ORDER ID: " + payment.getOrderID() + " completed.");
 										status.setOrderCompleted(true);
 										gotComponents.remove(status);
 									}
@@ -825,8 +818,8 @@ public class ManufacturerAgent extends Agent {
 				}
 			}
 
-			System.out.printf("\n Day %d, \nTodays warehouse fee = %d, \nTodays late fee = %d \nTodays profit = £%d, \nTotal profit = £%d\n", day, storageCost, latePenalty, todaysProfit, totalProfit );
-			System.out.println("Phones built: " + todaysPhoneQuantity);
+			System.out.printf("\n Day %d, \nTodays profit = £%d.00, \nTotal profit = £%d.00\n", day, todaysProfit, totalProfit );
+			//System.out.println("Phones built: " + todaysPhoneQuantity);
 		}
 	}
 
