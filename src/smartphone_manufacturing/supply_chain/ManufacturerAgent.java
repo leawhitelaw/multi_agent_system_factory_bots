@@ -406,7 +406,7 @@ public class ManufacturerAgent extends Agent {
 	public class ReceiveCustomerOrders extends Behaviour{
 		private int received = 0;
 		private int approvedToConfirmed = 0;
-		private int numApproved = approvedOrders.size();
+		private int numApproved;
 		public ReceiveCustomerOrders(Agent a) {
 			super(a);
 			System.out.println("ReceiveCustomerOrders STARTED");
@@ -433,12 +433,13 @@ public class ManufacturerAgent extends Agent {
 									for(CustomerOrderStatus approvedOrder : approvedOrders) {
 										if(manufactureOrder.getOrder().getOrderID().contentEquals(approvedOrder.getOrder().getOrderID())) {
 											confirmedOrders.add(approvedOrder);
+											System.out.println("Order added to confirmed");
 											approvedToConfirmed++;
 										}
 									}
 									if(approvedToConfirmed == approvedOrders.size()) {
 										approvedOrders.clear();
-
+										numApproved = approvedToConfirmed;
 									}
 								}
 
@@ -461,10 +462,10 @@ public class ManufacturerAgent extends Agent {
 
 		@Override
 		public boolean done() {
-			if (received == approvedOrdersNum) {
+			if (received == numApproved) {
 				System.out.println("ReceiveCustomerOrders DONE");
 			}
-			return received == numApproved;
+			return received == approvedToConfirmed;
 		}	
 	}
 
@@ -479,23 +480,23 @@ public class ManufacturerAgent extends Agent {
 		private int step = 0;
 		private CustomerOrderStatus orderStatus;
 		private AID supplier;
-		private int orderedComponents;
+		//private int orderedComponents;
 
 		@Override
 		public void action() {
-			try {
-				Thread.sleep(30);
-			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+//			try {
+//				Thread.sleep(30);
+//			} catch (InterruptedException e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//			}
 			//System.out.println("CONFIRMED ORDERS: " + confirmedOrders);
 			switch(step) {
 			case 0:
-//				if (confirmedOrders.size() == 0) {
-//					System.out.println("No components to order");
-//					break;
-//				}
+				if (confirmedOrders.size() == 0) {
+					System.out.println("No components to order");
+					break;
+				}
 				orderStatus = confirmedOrders.get(0);
 				System.out.println("requesting components");
 				supplier = orderStatus.getSupplier();
@@ -679,7 +680,7 @@ public class ManufacturerAgent extends Agent {
 						e.printStackTrace();
 					}
 				} else if (toReceive.size() > 0) {
-					System.out.println("blockinnng");
+					//System.out.println("blockinnng");
 					block();
 				}
 			}
@@ -703,7 +704,7 @@ public class ManufacturerAgent extends Agent {
 		public MakeOrder(Agent a) {
 			super(a);
 			System.out.println("MakeOrder ACTION STARTED");
-//			if(gotComponents.size() < 0) {
+//			if(gotComponents.size() == 0) {
 //				step += 2;
 //			}
 		}
@@ -711,14 +712,14 @@ public class ManufacturerAgent extends Agent {
 
 		@Override
 		public void action() {
-			System.out.println(" ***** AFTER ACTION *****");
-			System.out.println("WHY NOT DONE");
+			//System.out.println(" ***** AFTER ACTION *****");
+			//System.out.println("WHY NOT DONE");
 			
 			switch(step) {
 			case 0:
-				if(accepted == 0) {
-					step++;
-				}
+//				if(accepted == 0) {
+//					step++;
+//				}
 				System.out.println(warehouse);
 				for(CustomerOrderStatus status: gotComponents) {
 					if(todaysPhoneQuantity + status.getOrder().getQuantity() > 50) {
