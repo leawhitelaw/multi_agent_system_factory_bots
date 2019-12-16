@@ -115,14 +115,14 @@ public class SupplierAgent extends Agent{
 					 CyclicBehaviour sendDetails = new SendSupplierDetails(myAgent);
 					 CyclicBehaviour respond = new RespondToRequests(myAgent);
 					 CyclicBehaviour receive = new ReceiveOrders(myAgent);
+					 ArrayList<Behaviour> removeBehaviours = new ArrayList<>();
+						removeBehaviours.add(sendDetails);
+						removeBehaviours.add(respond);
+						removeBehaviours.add(receive);
 					myAgent.addBehaviour(new FindManufacturer(myAgent));
 					myAgent.addBehaviour(sendDetails);
 					myAgent.addBehaviour(respond);
 					myAgent.addBehaviour(receive);
-					ArrayList<Behaviour> removeBehaviours = new ArrayList<>();
-					removeBehaviours.add(sendDetails);
-					removeBehaviours.add(respond);
-					removeBehaviours.add(receive);
 					myAgent.addBehaviour(new SendComponents(myAgent));
 					myAgent.addBehaviour(new EndOfDay(myAgent, removeBehaviours));
 				}
@@ -283,6 +283,7 @@ public class SupplierAgent extends Agent{
 							order.setComponents(components);
 							order.setOrderID(orderID);
 							order.setQuantity(quantity);
+							System.out.println("order received by supplier: " + order.getDelivery());
 							orders.add(order);
 							
 						}
@@ -313,13 +314,22 @@ public class SupplierAgent extends Agent{
 		@Override
 		public void action() {
 			for(ComponentsOrder order: orders) {
+//				try {
+//					Thread.sleep(10);
+//				} catch (InterruptedException e1) {
+//					// TODO Auto-generated catch block
+//					e1.printStackTrace();
+//				}
 				if (order.getDelivery() == day) {
+					System.out.println("components TODAY order: " + order.toString());
 					ComponentsSent sendComponents= new ComponentsSent();
+					
 					ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 			        msg.setLanguage(codec.getName());
 			        msg.setOntology(ontology.getName()); 
 			        msg.addReceiver(order.getBuyer());
 			        msg.setConversationId("sell-components-response");
+			        
 			        sendComponents.setOrderID(order.getOrderID());
 			        sendComponents.setPhoneComponents(order.getComponents());
 			        sendComponents.setQty(order.getQuantity());

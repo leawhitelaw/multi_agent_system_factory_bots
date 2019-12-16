@@ -74,6 +74,7 @@ public class ManufacturerAgent extends Agent {
 	private int costOfSupplies = 0;
 	private int totalProfit = 0;
 	private int todaysPhoneQuantity = 0;
+	private int approvedOrdersNum = 0;
 	
 	//get ontology
 	private Ontology ontology = ManufacturingOntology.getInstance();
@@ -136,6 +137,7 @@ public class ManufacturerAgent extends Agent {
 					dailyActivity.addSubBehaviour(new GetSupplierDetails(myAgent));
 					//manufacturing activities
 					dailyActivity.addSubBehaviour(new SelectCustomerOrders(myAgent));
+					dailyActivity.addSubBehaviour(new ReceiveCustomerOrders(myAgent));
 					dailyActivity.addSubBehaviour(new OrderComponents(myAgent));
 					dailyActivity.addSubBehaviour(new ReceiveSupplies(myAgent));
 					dailyActivity.addSubBehaviour(new MakeOrder(myAgent));
@@ -373,6 +375,7 @@ public class ManufacturerAgent extends Agent {
 						}
 						reply.setConversationId("customer-order-response");
 						myAgent.send(reply);
+						approvedOrdersNum = approvedOrders.size();
 						replies++;
 					}else {
 						System.out.println("Agent: " + myAgent.getAID() + "Received wrong msg from customer");
@@ -393,6 +396,64 @@ public class ManufacturerAgent extends Agent {
 		}	
 	}
 	
+	public class ReceiveCustomerOrders extends Behaviour{
+		private int received = 0;
+		private int approvedToConfirmed = 0;
+		//private int numApproved = approvedOrders.size();
+		public ReceiveCustomerOrders(Agent a) {
+			super(a);
+		}
+		
+		@Override
+		public void action() {
+			MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.REQUEST), MessageTemplate.MatchConversationId("customer-order-sent"));
+			ACLMessage customerMsg = receive(mt);
+
+			if(customerMsg != null) {
+				//System.out.println("do u get here???");
+				try {
+					ContentElement ce = null;
+					ce = getContentManager().extractContent(customerMsg);
+					
+					if(ce instanceof Action) {
+						received ++;
+						Concept action = ((Action)ce).getAction();
+						if(action instanceof ManufactureOrder) {
+							ManufactureOrder manufactureOrder = (ManufactureOrder)action;
+							if(approvedOrders.size() > 0) {
+								for(CustomerOrderStatus approvedOrder : approvedOrders) {
+									if(manufactureOrder.getOrder().getOrderID().contentEquals(approvedOrder.getOrder().getOrderID())) {
+										confirmedOrders.add(approvedOrder);
+										approvedToConfirmed++;
+									}
+								}
+								if(approvedToConfirmed == approvedOrders.size()) {
+									approvedOrders.clear();
+									
+								}
+							}
+							
+						}
+					}
+					
+				}catch(CodecException ce) {
+					ce.printStackTrace();
+				}catch(OntologyException oe) {
+					oe.printStackTrace();
+				}catch(Exception e) {
+					e.printStackTrace();
+				}
+			}else {
+				block();
+			}
+		}
+		
+		@Override
+		public boolean done() {
+			return received == approvedOrdersNum;
+		}	
+	}
+	
 	//requesting and ordering components in one behaviour as they apply to same order
 	public class OrderComponents extends Behaviour {
 		
@@ -403,62 +464,14 @@ public class ManufacturerAgent extends Agent {
 		private int step = 0;
 		private CustomerOrderStatus orderStatus;
 		private AID supplier;
-		private int approvedToConfirmed = 0;
+		private int orderedComponents;
 		
 		@Override
 		public void action() {
 			switch(step) {
 			case 0:
-				MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.REQUEST), MessageTemplate.MatchConversationId("customer-order-sent"));
-				ACLMessage customerMsg = receive(mt);
-				
-				if(customerMsg != null) {
-					try {
-						ContentElement ce = null;
-						ce = getContentManager().extractContent(customerMsg);
-						
-						if(ce instanceof Action) {
-							Concept action = ((Action)ce).getAction();
-							if(action instanceof ManufactureOrder) {
-								ManufactureOrder manufactureOrder = (ManufactureOrder)action;
-								if(approvedOrders.size() > 0) {
-									for(CustomerOrderStatus approvedOrder : approvedOrders) {
-										if(manufactureOrder.getOrder().getOrderID().contentEquals(approvedOrder.getOrder().getOrderID())) {
-											confirmedOrders.add(approvedOrder);
-											approvedToConfirmed++;
-										}
-									}
-									if(approvedToConfirmed == approvedOrders.size()) {
-										approvedOrders.clear();
-									}
-									orderStatus = confirmedOrders.get(0);
-									confirmedOrders.remove(0);
-									if(orderStatus != null) {
-										step ++;
-									}else {
-										step = 0;
-									}
-								}else{
-									step = 0;
-								}
-								
-							}
-						}
-						
-					}catch(CodecException ce) {
-						ce.printStackTrace();
-					}catch(OntologyException oe) {
-						oe.printStackTrace();
-					}catch(Exception e) {
-						e.printStackTrace();
-					}
-				}else {
-					block();
-				}
-				break;
-				
-				//if step = 1 then components are to be ordered otherwise there are no approved orders
-			case 1:
+				orderStatus = confirmedOrders.get(0);
+				System.out.println("requesting components");
 				supplier = orderStatus.getSupplier();
 				ComponentsInStock componentsInStock = new ComponentsInStock(); //new request for components
 				
@@ -483,11 +496,12 @@ public class ManufacturerAgent extends Agent {
 				}
 			break;
 			
-			case 2:
+			case 1:
 				MessageTemplate responseMt = MessageTemplate.and(
 						MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.CONFIRM), MessageTemplate.MatchPerformative(ACLMessage.DISCONFIRM)), MessageTemplate.MatchConversationId("sell-components-response"));
 				ACLMessage response = receive(responseMt);
 				if(response != null) {
+					System.out.println("supplier responded ");
 					//if confirmed then do following
 					if (response.getPerformative() == ACLMessage.CONFIRM) {
 						ACLMessage orderReq = new ACLMessage(ACLMessage.REQUEST);
@@ -507,6 +521,7 @@ public class ManufacturerAgent extends Agent {
 							
 							getContentManager().fillContent(orderReq, request);
 							send(orderReq);
+							confirmedOrders.remove(0);
 							step++;
 							
 						}catch(CodecException ce) {
@@ -528,7 +543,8 @@ public class ManufacturerAgent extends Agent {
 				
 			break;
 			
-			case 3:
+			case 2:
+				System.out.println("sending order for comps");
 				//order has been  sent for components 
 				int supplyCost = orderStatus.getPrice();
 				String orderID = orderStatus.getOrder().getOrderID();
@@ -560,7 +576,7 @@ public class ManufacturerAgent extends Agent {
 		
 		@Override
 		public boolean done() {
-			return approvedOrders.size() == 0 && step == 0; 
+			return confirmedOrders.size() == 0 && step == 0; 
 		}	
 	} // end of order components behaviour
 	
@@ -571,18 +587,26 @@ public class ManufacturerAgent extends Agent {
 		private ArrayList<CustomerOrderStatus> toReceive = new ArrayList<>();
 		public ReceiveSupplies(Agent a) {
 			super(a);
-			//put inside here as it cannot be in behaviour outside of action
-			for(CustomerOrderStatus status : orderList) {	
-				if(status.getComponentDeliveryDate() == day) {
-					//System.out.println("adding to list " + status);
-					toReceive.add(status);
-				}
-			}
+			
 		}
 		
 		
 		@Override 
 		public void action() {
+//			try {
+//				Thread.sleep(10);
+//			} catch (InterruptedException e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//			}
+			for(CustomerOrderStatus status : orderList) {	
+				if(status.getComponentDeliveryDate() == day) {
+					System.out.println(status.getOrder().toString());
+					//System.out.println("adding to list " + status);
+					toReceive.add(status);
+				}
+			}
+			System.out.println("before receiving supplies");
 			 MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM), MessageTemplate.MatchConversationId("sell-components-response"));
 			 ACLMessage receiveMsg = receive(mt);
 			 if(receiveMsg != null) {
@@ -607,12 +631,15 @@ public class ManufacturerAgent extends Agent {
 							 
 						 }
 						 
-						 for(CustomerOrderStatus status : orderList) {
+						 for(CustomerOrderStatus status : toReceive) {
 							 if(status.getOrder().getOrderID().equals(orderID)) {
 								 gotComponents.add(status);
 							 }
 						 }
+						 System.out.println(gotComponents);
+						 System.out.println("toReceive " + toReceive.size());
 						 suppliesReceived ++;
+						 System.out.println("supps received " + suppliesReceived);
 						
 					 }else {
 						 System.out.println("Agent: " + myAgent.getAID() + "Received wrong msg from supplier");
@@ -625,6 +652,7 @@ public class ManufacturerAgent extends Agent {
 					e.printStackTrace();
 				}
 			 } else if (toReceive.size() > 0) {
+				 System.out.println("blockinnng");
 				 block();
 			 }
 		}
@@ -788,6 +816,7 @@ public class ManufacturerAgent extends Agent {
 			storageCost = 0;
 			costOfSupplies = 0;
 			todaysPhoneQuantity = 0;
+			approvedOrdersNum = 0;
 			ACLMessage doneMsg = new ACLMessage(ACLMessage.INFORM);
 			doneMsg.setContent("done");
 			doneMsg.addReceiver(tickerAgent);
