@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import jade.content.Concept;
 import jade.content.ContentElement;
@@ -365,7 +366,7 @@ public class ManufacturerAgent extends Agent {
 
 
 						ACLMessage reply = msg.createReply();
-						if(profit > 0 ) {
+						if(profit > 0 && orderStatus.getOrder().getDaysToDeadline() > 1) {
 							System.out.println("ORDER ACCEPTED: " + order.getOrderID());
 							orderStatus.setSupplier(quickestSupplier);
 							orderStatus.setPrice(cost);
@@ -477,6 +478,12 @@ public class ManufacturerAgent extends Agent {
 				if (confirmedOrders.size() == 0) {
 					break;
 				}
+				//sort confirmed orders by most prominent deadline to avoid delivery costs 
+				Collections.sort(confirmedOrders, CustomerOrderStatus.deliveryDays);
+//				for(CustomerOrderStatus order : confirmedOrders ) {
+//					System.out.println(" delivery due day = " + order.getOrder().getDaysToDeadline());
+//				}
+				//Collections.sort(confirmedOrders.get, Collections.reverseOrder());
 				orderStatus = confirmedOrders.get(0);
 				supplier = orderStatus.getSupplier();
 				ComponentsInStock componentsInStock = new ComponentsInStock(); //new request for components
@@ -527,7 +534,6 @@ public class ManufacturerAgent extends Agent {
 
 							getContentManager().fillContent(orderReq, request);
 							send(orderReq);
-							//System.out.println(confirmedOrders.get(0).toString());
 							confirmedOrders.remove(0);
 							step++;
 
@@ -674,8 +680,7 @@ public class ManufacturerAgent extends Agent {
 			
 			switch(step) {
 			case 0:
-
-				System.out.println("WH BEFORE: " + warehouse);
+				Collections.sort(confirmedOrders, CustomerOrderStatus.profit);
 				for(CustomerOrderStatus status: gotComponents) {
 					if(todaysPhoneQuantity + status.getOrder().getQuantity() > 50) {
 						System.out.println("decided not to order!!");
@@ -711,7 +716,6 @@ public class ManufacturerAgent extends Agent {
 								warehouse.put(component.hashCode(), (currQty - quantity));
 							}
 							todaysPhoneQuantity += quantity;
-							//System.out.println("Phones Built: " + todaysPhoneQuantity);
 							
 							//ship order
 							getContentManager().fillContent(sendMsg, sendOrder);
@@ -728,13 +732,11 @@ public class ManufacturerAgent extends Agent {
 					}
 
 				}
-				System.out.println("WH AFTER: " + warehouse);
+				//System.out.println("WH AFTER: " + warehouse);
 				step++;
-				//break;
 
 				//receive payment from customer
 			case 1:
-				//System.out.println("Awaiting payment: " + awaitingPayment);
 				if(awaitingPayment > 0) {
 					MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM), MessageTemplate.MatchConversationId("order-payment"));
 					ACLMessage payMsg = receive(mt);
@@ -745,9 +747,7 @@ public class ManufacturerAgent extends Agent {
 
 							if (ce instanceof PaymentSent) {
 								PaymentSent payment = (PaymentSent) ce;
-								//System.out.println("PAYMENT ID: " + payment.getOrderID());
 								for(CustomerOrderStatus status : orderList) {
-									//System.out.println("- ORDER ID: " + status.getOrder().getOrderID());
 									if(status.getOrder().getOrderID().equals(payment.getOrderID())) {
 										System.out.println("ORDER ID: " + payment.getOrderID() + " completed.");
 										status.setOrderCompleted(true);
@@ -755,7 +755,6 @@ public class ManufacturerAgent extends Agent {
 									}
 								}
 								todaysProfit += payment.getPrice();
-								//System.out.println("ADDING TO PROFIT: " + payment.getPrice() + " from customer " + payment.getBuyer().getLocalName());
 								awaitingPayment --;
 							}else {
 								System.out.println("Agent: " + myAgent.getAID().getLocalName() + "Received wrong msg from customer");

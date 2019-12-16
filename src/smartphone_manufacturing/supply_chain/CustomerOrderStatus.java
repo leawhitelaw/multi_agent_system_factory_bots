@@ -1,5 +1,6 @@
 package smartphone_manufacturing.supply_chain;
 import java.util.HashMap;
+import java.util.Comparator;
 
 import jade.core.AID;
 import smartphone_manufacturing.supply_chain_ontology.concepts.PhoneComponent;
@@ -17,7 +18,7 @@ public class CustomerOrderStatus {
 	private int dayOrdered;
 	private int phonesBuilt;
 	
-	public CustomerOrderStatus(CustomerOrder order) {
+	public CustomerOrderStatus(CustomerOrder order){
 		this.setOrder(order);
 		components = new HashMap<>();
 	}
@@ -101,9 +102,33 @@ public class CustomerOrderStatus {
 				+ ", componentDeliveryDate=" + componentDeliveryDate + ", dayOrdered=" + dayOrdered + ", phonesBuilt="
 				+ phonesBuilt + "]";
 	}
+	
+	public static Comparator<CustomerOrderStatus> deliveryDays = new Comparator<CustomerOrderStatus>() {
 
-	
-	
-	
+		public int compare(CustomerOrderStatus o1, CustomerOrderStatus o2) {
+
+		   int o1days = o1.getOrder().getDaysToDeadline();
+		   int o2days = o2.getOrder().getDaysToDeadline();
+
+		   /*For ascending order*/
+		   //return rollno1-rollno2;
+
+		   /*For descending order*/
+		   return o1days-o2days;
+		}};
+		
+	public static Comparator<CustomerOrderStatus> profit = new Comparator<CustomerOrderStatus>() {
+
+		public int compare(CustomerOrderStatus o1, CustomerOrderStatus o2) {
+
+		   int o1Price = o1.getOrder().getPrice();
+		   int o2Price = o2.getOrder().getPrice();
+
+		   /*For ascending order*/
+		   //return rollno1-rollno2;
+
+		   /*For descending order*/
+		   return o2Price-o1Price;
+		}};
 
 }
