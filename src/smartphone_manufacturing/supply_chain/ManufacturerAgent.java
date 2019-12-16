@@ -76,6 +76,7 @@ public class ManufacturerAgent extends Agent {
 	private int todaysPhoneQuantity = 0;
 	private int approvedOrdersNum = 0;
 	private int accepted = 0;
+	private int componentDelivery = 0;
 
 	//get ontology
 	private Ontology ontology = ManufacturingOntology.getInstance();
@@ -344,6 +345,7 @@ public class ManufacturerAgent extends Agent {
 								quickestSupplier = supplier.getSupplier();
 								currentSupplier = supplier;
 								lowestDelivery = deliveryDays;
+								componentDelivery = lowestDelivery;
 							}
 
 						}
@@ -366,7 +368,7 @@ public class ManufacturerAgent extends Agent {
 						if(profit > 0 ) {
 							approvedOrders.add(orderStatus);
 							orderStatus.setSupplier(quickestSupplier);
-							orderStatus.setComponentDeliveryDate(day + lowestDelivery);
+							//orderStatus.setComponentDeliveryDate(day + lowestDelivery);
 							orderStatus.setPrice(cost);
 							orderStatus.setDayOrdered(day);
 							orderStatus.setOrderCompleted(false);
@@ -396,8 +398,8 @@ public class ManufacturerAgent extends Agent {
 		@Override
 		public boolean done() {
 			if(replies == customers.size()) {
-				System.out.println("CUSTOMER ORDERS ACCEPTED TODAY:" + accepted);
-				System.out.println("REPLIES TODAY: " + replies);
+				//System.out.println("CUSTOMER ORDERS ACCEPTED TODAY:" + accepted);
+				//System.out.println("REPLIES TODAY: " + replies);
 			}
 			return replies == customers.size();
 		}	
@@ -409,7 +411,7 @@ public class ManufacturerAgent extends Agent {
 		private int numApproved;
 		public ReceiveCustomerOrders(Agent a) {
 			super(a);
-			System.out.println("ReceiveCustomerOrders STARTED");
+			//System.out.println("ReceiveCustomerOrders STARTED");
 		}
 
 		@Override
@@ -433,7 +435,7 @@ public class ManufacturerAgent extends Agent {
 									for(CustomerOrderStatus approvedOrder : approvedOrders) {
 										if(manufactureOrder.getOrder().getOrderID().contentEquals(approvedOrder.getOrder().getOrderID())) {
 											confirmedOrders.add(approvedOrder);
-											System.out.println("Order added to confirmed");
+											//System.out.println("Order added to confirmed");
 											approvedToConfirmed++;
 										}
 									}
@@ -463,7 +465,7 @@ public class ManufacturerAgent extends Agent {
 		@Override
 		public boolean done() {
 			if (received == numApproved) {
-				System.out.println("ReceiveCustomerOrders DONE");
+				//System.out.println("ReceiveCustomerOrders DONE");
 			}
 			return received == approvedToConfirmed;
 		}	
@@ -474,7 +476,7 @@ public class ManufacturerAgent extends Agent {
 
 		public OrderComponents(Agent a) {
 			super(a);
-			System.out.println("OrderComponents STARTED");
+			//System.out.println("OrderComponents STARTED");
 		}
 
 		private int step = 0;
@@ -494,11 +496,11 @@ public class ManufacturerAgent extends Agent {
 			switch(step) {
 			case 0:
 				if (confirmedOrders.size() == 0) {
-					System.out.println("No components to order");
+					//System.out.println("No components to order");
 					break;
 				}
 				orderStatus = confirmedOrders.get(0);
-				System.out.println("requesting components");
+				//System.out.println("requesting components");
 				supplier = orderStatus.getSupplier();
 				ComponentsInStock componentsInStock = new ComponentsInStock(); //new request for components
 
@@ -510,8 +512,10 @@ public class ManufacturerAgent extends Agent {
 				componentsInStock.setSupplier(supplier);
 				componentsInStock.setQuantity(orderStatus.getOrder().getQuantity());
 				try {
+					orderStatus.setComponentDeliveryDate(day + componentDelivery);
 					componentsInStock.setComponents(orderStatus.getOrder().getSmartPhone().getPhoneComponents());
 					getContentManager().fillContent(askSupplierMsg, componentsInStock);
+					//System.out.println("SENDING COMPONENT REQUEST TO SUPPLIER WITH ORDER ID: ");
 					send(askSupplierMsg);
 					step++;
 				}catch(CodecException ce) {
@@ -541,6 +545,7 @@ public class ManufacturerAgent extends Agent {
 							sellComps.setManufacturer(myAgent.getAID());
 							sellComps.setComponents(orderStatus.getOrder().getSmartPhone().getPhoneComponents());
 							sellComps.setQuantity(orderStatus.getOrder().getQuantity());
+							System.out.println("SETTING ORDERID FOR COMPONENTS REQUEST: " + orderStatus.getOrder().getOrderID() + " and DELIVERY DAY " + orderStatus.getComponentDeliveryDate());
 							sellComps.setOrderId(orderStatus.getOrder().getOrderID());
 							Action request = new Action();
 							request.setAction(sellComps);
@@ -627,7 +632,7 @@ public class ManufacturerAgent extends Agent {
 					toReceive.add(status);
 				}
 			}
-			System.out.println("before receiving supplies - received size: " + toReceive.size());
+			//System.out.println("before receiving supplies - received size: " + toReceive.size());
 		}
 
 
@@ -635,7 +640,7 @@ public class ManufacturerAgent extends Agent {
 		public void action() {
 			
 			if (toReceive.size() > 0) {
-				MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM), MessageTemplate.MatchConversationId("sell-components-response"));
+				MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM), MessageTemplate.MatchConversationId("send-components"));
 				ACLMessage receiveMsg = receive(mt);
 				if(receiveMsg != null) {
 					int wHquantity;
@@ -660,7 +665,10 @@ public class ManufacturerAgent extends Agent {
 							}
 
 							for(CustomerOrderStatus status : toReceive) {
+								//System.out.println("in to receivec loop **************8");
+								System.out.println("STATUS ID: " + status.getOrder().getOrderID() + " & ORDERID: " + orderID);
 								if(status.getOrder().getOrderID().equals(orderID)) {
+									System.out.println("in IF loop **************8");
 									gotComponents.add(status);
 								}
 							}
@@ -690,7 +698,7 @@ public class ManufacturerAgent extends Agent {
 		@Override
 		public boolean done() {
 			if(suppliesReceived == toReceive.size()) {
-				System.out.println("ReceiveSupplies DONE");
+				//System.out.println("ReceiveSupplies DONE");
 			}
 			return suppliesReceived == toReceive.size();
 		}
@@ -703,7 +711,7 @@ public class ManufacturerAgent extends Agent {
 
 		public MakeOrder(Agent a) {
 			super(a);
-			System.out.println("MakeOrder ACTION STARTED");
+			//System.out.println("MakeOrder ACTION STARTED");
 //			if(gotComponents.size() == 0) {
 //				step += 2;
 //			}
@@ -717,12 +725,15 @@ public class ManufacturerAgent extends Agent {
 			
 			switch(step) {
 			case 0:
+				System.out.println("about to order!!");
 //				if(accepted == 0) {
 //					step++;
 //				}
-				System.out.println(warehouse);
+				//System.out.println(warehouse);
 				for(CustomerOrderStatus status: gotComponents) {
+					System.out.println("dOES IT EXIST THOUGH ? ? ? ? ? !!");
 					if(todaysPhoneQuantity + status.getOrder().getQuantity() > 50) {
+						//System.out.println("decided not to order!!");
 						continue;
 					}
 					ArrayList<PhoneComponent> phoneComponents = status.getOrder().getSmartPhone().getPhoneComponents();
@@ -753,7 +764,7 @@ public class ManufacturerAgent extends Agent {
 								warehouse.put(component.hashCode(), (currQty - quantity));
 							}
 							todaysPhoneQuantity += quantity;
-							System.out.println("Phones Built: " + todaysPhoneQuantity);
+							//System.out.println("Phones Built: " + todaysPhoneQuantity);
 							
 							//ship order
 							getContentManager().fillContent(sendMsg, sendOrder);
@@ -776,6 +787,7 @@ public class ManufacturerAgent extends Agent {
 
 				//receive payment from customer
 			case 1:
+				//System.out.println("Awaiting payment: " + awaitingPayment);
 				if(awaitingPayment > 0) {
 					MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.INFORM), MessageTemplate.MatchConversationId("order-payment"));
 					ACLMessage payMsg = receive(mt);
@@ -819,9 +831,8 @@ public class ManufacturerAgent extends Agent {
 
 		@Override 
 		public boolean done() {
-			System.out.println("Awaiting payment: " + awaitingPayment);
 			if(awaitingPayment == 0) {
-				System.out.println("MakeOrder DONE");
+				//System.out.println("MakeOrder DONE");
 			}
 			return awaitingPayment == 0;
 		}

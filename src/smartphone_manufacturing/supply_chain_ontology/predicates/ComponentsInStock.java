@@ -17,6 +17,7 @@ public class ComponentsInStock implements Predicate {
 	private AID supplier;
 	private ArrayList<PhoneComponent> components;
 	private int quantity;
+	//private String orderID;
 	
 	@Slot(mandatory = true)
 	public AID getSupplier() {

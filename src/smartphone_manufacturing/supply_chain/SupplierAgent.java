@@ -287,7 +287,7 @@ public class SupplierAgent extends Agent{
 							order.setComponents(components);
 							order.setOrderID(orderID);
 							order.setQuantity(quantity);
-							System.out.println("order received by supplier: " + order.getDelivery());
+							System.out.println("order request received by supplier WITH ID: " + order.getOrderID() + "with delivery " + day + deliveryDays);
 							orders.add(order);
 
 						}
@@ -334,7 +334,7 @@ public class SupplierAgent extends Agent{
 					msg.setLanguage(codec.getName());
 					msg.setOntology(ontology.getName()); 
 					msg.addReceiver(order.getBuyer());
-					msg.setConversationId("sell-components-response");
+					msg.setConversationId("send-components");
 
 					sendComponents.setOrderID(order.getOrderID());
 					sendComponents.setPhoneComponents(order.getComponents());
