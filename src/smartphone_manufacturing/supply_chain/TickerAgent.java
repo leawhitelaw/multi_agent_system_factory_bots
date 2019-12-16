@@ -34,7 +34,7 @@ public class TickerAgent extends Agent {
 		}
 
 		//wait for all other agents to start
-		doWait(15000);
+		doWait(5000);
 		addBehaviour(new SynchAgentsBehaviour(this));
 	}
 

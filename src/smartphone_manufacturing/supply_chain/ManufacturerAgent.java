@@ -363,7 +363,7 @@ public class ManufacturerAgent extends Agent {
 
 
 						ACLMessage reply = msg.createReply();
-						if(profit > 0 && accepted < 1) {
+						if(profit > 0 ) {
 							approvedOrders.add(orderStatus);
 							orderStatus.setSupplier(quickestSupplier);
 							orderStatus.setComponentDeliveryDate(day + lowestDelivery);
@@ -397,6 +397,7 @@ public class ManufacturerAgent extends Agent {
 		public boolean done() {
 			if(replies == customers.size()) {
 				System.out.println("CUSTOMER ORDERS ACCEPTED TODAY:" + accepted);
+				System.out.println("REPLIES TODAY: " + replies);
 			}
 			return replies == customers.size();
 		}	
@@ -405,7 +406,7 @@ public class ManufacturerAgent extends Agent {
 	public class ReceiveCustomerOrders extends Behaviour{
 		private int received = 0;
 		private int approvedToConfirmed = 0;
-		//private int numApproved = approvedOrders.size();
+		private int numApproved = approvedOrders.size();
 		public ReceiveCustomerOrders(Agent a) {
 			super(a);
 			System.out.println("ReceiveCustomerOrders STARTED");
@@ -413,46 +414,49 @@ public class ManufacturerAgent extends Agent {
 
 		@Override
 		public void action() {
-			MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.REQUEST), MessageTemplate.MatchConversationId("customer-order-sent"));
-			ACLMessage customerMsg = receive(mt);
+			if(accepted > 0) {
+				MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.REQUEST), MessageTemplate.MatchConversationId("customer-order-sent"));
+				ACLMessage customerMsg = receive(mt);
 
-			if(customerMsg != null) {
-				//System.out.println("do u get here???");
-				try {
-					ContentElement ce = null;
-					ce = getContentManager().extractContent(customerMsg);
+				if(customerMsg != null) {
+					//System.out.println("do u get here???");
+					try {
+						ContentElement ce = null;
+						ce = getContentManager().extractContent(customerMsg);
 
-					if(ce instanceof Action) {
-						received ++;
-						Concept action = ((Action)ce).getAction();
-						if(action instanceof ManufactureOrder) {
-							ManufactureOrder manufactureOrder = (ManufactureOrder)action;
-							if(approvedOrders.size() > 0) {
-								for(CustomerOrderStatus approvedOrder : approvedOrders) {
-									if(manufactureOrder.getOrder().getOrderID().contentEquals(approvedOrder.getOrder().getOrderID())) {
-										confirmedOrders.add(approvedOrder);
-										approvedToConfirmed++;
+						if(ce instanceof Action) {
+							Concept action = ((Action)ce).getAction();
+							if(action instanceof ManufactureOrder) {
+								ManufactureOrder manufactureOrder = (ManufactureOrder)action;
+								if(approvedOrders.size() > 0) {
+									received ++;
+									for(CustomerOrderStatus approvedOrder : approvedOrders) {
+										if(manufactureOrder.getOrder().getOrderID().contentEquals(approvedOrder.getOrder().getOrderID())) {
+											confirmedOrders.add(approvedOrder);
+											approvedToConfirmed++;
+										}
+									}
+									if(approvedToConfirmed == approvedOrders.size()) {
+										approvedOrders.clear();
+
 									}
 								}
-								if(approvedToConfirmed == approvedOrders.size()) {
-									approvedOrders.clear();
 
-								}
 							}
-
 						}
-					}
 
-				}catch(CodecException ce) {
-					ce.printStackTrace();
-				}catch(OntologyException oe) {
-					oe.printStackTrace();
-				}catch(Exception e) {
-					e.printStackTrace();
+					}catch(CodecException ce) {
+						ce.printStackTrace();
+					}catch(OntologyException oe) {
+						oe.printStackTrace();
+					}catch(Exception e) {
+						e.printStackTrace();
+					}
+				}else {
+					block();
 				}
-			}else {
-				block();
 			}
+			
 		}
 
 		@Override
@@ -460,7 +464,7 @@ public class ManufacturerAgent extends Agent {
 			if (received == approvedOrdersNum) {
 				System.out.println("ReceiveCustomerOrders DONE");
 			}
-			return received == approvedOrdersNum;
+			return received == numApproved;
 		}	
 	}
 
@@ -488,10 +492,10 @@ public class ManufacturerAgent extends Agent {
 			//System.out.println("CONFIRMED ORDERS: " + confirmedOrders);
 			switch(step) {
 			case 0:
-				if (accepted == 0) {
-					System.out.println("No components to order");
-					break;
-				}
+//				if (confirmedOrders.size() == 0) {
+//					System.out.println("No components to order");
+//					break;
+//				}
 				orderStatus = confirmedOrders.get(0);
 				System.out.println("requesting components");
 				supplier = orderStatus.getSupplier();
@@ -675,7 +679,7 @@ public class ManufacturerAgent extends Agent {
 						e.printStackTrace();
 					}
 				} else if (toReceive.size() > 0) {
-					//System.out.println("blockinnng");
+					System.out.println("blockinnng");
 					block();
 				}
 			}
@@ -692,20 +696,29 @@ public class ManufacturerAgent extends Agent {
 	} // end of receive supplies behaviour
 
 	public class MakeOrder extends Behaviour {
+		private int step = 0;
+		private int awaitingPayment = 0;
+		private static final long serialVersionUID = 1L;
 
 		public MakeOrder(Agent a) {
 			super(a);
 			System.out.println("MakeOrder ACTION STARTED");
+//			if(gotComponents.size() < 0) {
+//				step += 2;
+//			}
 		}
 
-		private int step = 0;
-		private int awaitingPayment = 0;
 
 		@Override
 		public void action() {
+			System.out.println(" ***** AFTER ACTION *****");
+			System.out.println("WHY NOT DONE");
 			
 			switch(step) {
 			case 0:
+				if(accepted == 0) {
+					step++;
+				}
 				System.out.println(warehouse);
 				for(CustomerOrderStatus status: gotComponents) {
 					if(todaysPhoneQuantity + status.getOrder().getQuantity() > 50) {
@@ -758,7 +771,7 @@ public class ManufacturerAgent extends Agent {
 				}
 
 				step++;
-				break;
+				//break;
 
 				//receive payment from customer
 			case 1:
@@ -840,8 +853,14 @@ public class ManufacturerAgent extends Agent {
 			//remove finished order from current order list
 			for(CustomerOrderStatus status : orderList) {
 				if(status.getOrderCompleted()==true) {
-					orderList.remove(status);
+					//orderList.remove(status);
 					confirmedOrders.remove(status);
+				}
+			}
+			Iterator<CustomerOrderStatus> iter = orderList.iterator();
+			while(iter.hasNext()) {
+				if(iter.next().getOrderCompleted() == true) {
+					iter.remove();
 				}
 			}
 
