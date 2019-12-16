@@ -37,4 +37,11 @@ public class PaymentSent implements Predicate {
 		this.price = price;
 	}
 
+	@Override
+	public String toString() {
+		return "PaymentSent [buyer=" + buyer + ", price=" + price + ", orderID=" + orderID + "]";
+	}
+	
+	
+
 }

@@ -17,6 +17,7 @@ import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.SequentialBehaviour;
 import jade.core.behaviours.WakerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
@@ -42,13 +43,13 @@ public class SupplierAgent extends Agent{
 	private AID manufacturerAgent;
 	private Codec codec = new SLCodec();
 	private Ontology ontology = ManufacturingOntology.getInstance();
-	
+
 	private ArrayList<ComponentsOrder> orders = new ArrayList<>();
-	
+
 	HashMap<PhoneComponent, Integer> phoneComponents;
 	private int deliveryDays;
 	private int receivedMoney;
-	
+
 	@Override
 	protected void setup() {
 		getContentManager().registerLanguage(codec);
@@ -61,7 +62,7 @@ public class SupplierAgent extends Agent{
 		sd.setType("supply-agent");
 		sd.setName(getLocalName() + "-supplier-agent");
 		dfd.addServices(sd);
-		
+
 		try {
 			DFService.register(this, dfd);
 		}catch(FIPAException e) {
@@ -70,11 +71,11 @@ public class SupplierAgent extends Agent{
 		Object[] args = getArguments();
 		if (args != null && args.length > 0) {
 			if((int)args[0] == 1) {
-				System.out.println("SUP ARGS = 1!");
+				//System.out.println("SUP ARGS = 1!");
 				phoneComponents = SupplierDetails.getSupplierOneComponents();
 				deliveryDays = SupplierDetails.getSupplierOneDelivery();
 			}else if((int)args[0] == 2) {
-				System.out.println("SUP ARGS = 2!");
+				//System.out.println("SUP ARGS = 2!");
 				phoneComponents = SupplierDetails.getSupplierTwoComponents();
 				deliveryDays = SupplierDetails.getSupplierTwoDelivery();
 			}
@@ -83,7 +84,7 @@ public class SupplierAgent extends Agent{
 		}
 		addBehaviour(new TickerWaitBehaviour(this));
 	}
-	
+
 	@Override
 	protected void takeDown() {
 		//Deregister from the yellow pages
@@ -94,12 +95,12 @@ public class SupplierAgent extends Agent{
 			e.printStackTrace();
 		}
 	}
-	
+
 	public class TickerWaitBehaviour extends CyclicBehaviour {
 		public TickerWaitBehaviour(Agent a) {
 			super(a);
 		}
-		
+
 		@Override
 		public void action() {
 			//wait for new day 
@@ -112,37 +113,40 @@ public class SupplierAgent extends Agent{
 				}
 				//do computation here
 				if(msg.getContent().equals("new-day")) {
-					 CyclicBehaviour sendDetails = new SendSupplierDetails(myAgent);
-					 CyclicBehaviour respond = new RespondToRequests(myAgent);
-					 CyclicBehaviour receive = new ReceiveOrders(myAgent);
-					 ArrayList<Behaviour> removeBehaviours = new ArrayList<>();
-						removeBehaviours.add(sendDetails);
-						removeBehaviours.add(respond);
-						removeBehaviours.add(receive);
-					myAgent.addBehaviour(new FindManufacturer(myAgent));
+					CyclicBehaviour sendDetails = new SendSupplierDetails(myAgent);
+					CyclicBehaviour respond = new RespondToRequests(myAgent);
+					CyclicBehaviour receive = new ReceiveOrders(myAgent);
+					ArrayList<Behaviour> removeBehaviours = new ArrayList<>();
+					removeBehaviours.add(sendDetails);
+					removeBehaviours.add(respond);
+					removeBehaviours.add(receive);
+					SequentialBehaviour dailyActivity = new SequentialBehaviour();
+					dailyActivity.addSubBehaviour(new FindManufacturer(myAgent));
+					dailyActivity.addSubBehaviour(new SendComponents(myAgent));
+					myAgent.addBehaviour(dailyActivity);
 					myAgent.addBehaviour(sendDetails);
 					myAgent.addBehaviour(respond);
 					myAgent.addBehaviour(receive);
-					myAgent.addBehaviour(new SendComponents(myAgent));
+
 					myAgent.addBehaviour(new EndOfDay(myAgent, removeBehaviours));
 				}
 				else {
 					//termination message to end simulation
 					myAgent.doDelete();
-					}
 				}
+			}
 			else {
 				block(); //suspend this behaviour till a message is received
 			}
 		}
 	}
-	
+
 	public class FindManufacturer extends OneShotBehaviour {
-		
+
 		public FindManufacturer(Agent a) {
 			super(a);
 		}
-		
+
 		@Override
 		public void action() {
 			//find manufacturer
@@ -155,19 +159,19 @@ public class SupplierAgent extends Agent{
 				if(manufacturerList.length >0) {
 					manufacturerAgent = manufacturerList[0].getName(); //gets AID of manufacturer
 				}
-				
+
 			}catch(FIPAException e) {
 				e.printStackTrace();
 			}
 		}
 	}
-	
+
 	public class SendSupplierDetails extends CyclicBehaviour {
-		
+
 		public SendSupplierDetails(Agent a) {
 			super(a);
 		}
-		
+
 		@Override
 		public void action() {
 			ArrayList<PhoneComponent> components = new ArrayList<>();
@@ -197,12 +201,12 @@ public class SupplierAgent extends Agent{
 							sendDetails.setSupplier(myAgent.getAID());
 							getContentManager().fillContent(reply, sendDetails);
 							send(reply);
-							
+
 						}else {
 							System.out.println("wrong type received by manufacture to " + myAgent.getAID());
 						}
 					}
-					
+
 				}catch(CodecException ce) {
 					ce.printStackTrace();
 				}catch(OntologyException oe) {
@@ -213,17 +217,17 @@ public class SupplierAgent extends Agent{
 			}else {
 				block();
 			}
-			
+
 		}
-		
+
 	}
-	
+
 	public class RespondToRequests extends CyclicBehaviour {
-		
+
 		public RespondToRequests(Agent a) {
 			super(a);
 		}
-		
+
 		@Override
 		public void action() {
 			MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.QUERY_IF),MessageTemplate.MatchConversationId("sell-components-request"));
@@ -255,13 +259,13 @@ public class SupplierAgent extends Agent{
 			}
 		}
 	}
-	
+
 	public class ReceiveOrders extends CyclicBehaviour {
-		
+
 		public ReceiveOrders(Agent a) {
 			super(a);
 		}
-		
+
 		@Override
 		public void action() {
 			MessageTemplate mt = MessageTemplate.and(MessageTemplate.MatchPerformative(ACLMessage.REQUEST),MessageTemplate.MatchConversationId("buy-components"));
@@ -285,12 +289,12 @@ public class SupplierAgent extends Agent{
 							order.setQuantity(quantity);
 							System.out.println("order received by supplier: " + order.getDelivery());
 							orders.add(order);
-							
+
 						}
 					}else {
 						System.out.println("incorrect predicate recieved from manufacturer agent");
 					}
-					
+
 				}catch(CodecException ce) {
 					ce.printStackTrace();
 				}catch (OntologyException oe) {
@@ -303,85 +307,87 @@ public class SupplierAgent extends Agent{
 			}
 		}
 	}
-	
+
 	public class SendComponents extends OneShotBehaviour{
-		
+
 		public SendComponents(Agent a) {
 			super(a);
 		}
-		
+
 
 		@Override
 		public void action() {
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			//System.out.println("------------ " + getAID().getLocalName() + " SendComponents ------------");
+
 			for(ComponentsOrder order: orders) {
-//				try {
-//					Thread.sleep(10);
-//				} catch (InterruptedException e1) {
-//					// TODO Auto-generated catch block
-//					e1.printStackTrace();
-//				}
 				if (order.getDelivery() == day) {
 					System.out.println("components TODAY order: " + order.toString());
 					ComponentsSent sendComponents= new ComponentsSent();
-					
+
 					ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-			        msg.setLanguage(codec.getName());
-			        msg.setOntology(ontology.getName()); 
-			        msg.addReceiver(order.getBuyer());
-			        msg.setConversationId("sell-components-response");
-			        
-			        sendComponents.setOrderID(order.getOrderID());
-			        sendComponents.setPhoneComponents(order.getComponents());
-			        sendComponents.setQty(order.getQuantity());
-			        sendComponents.setSeller(myAgent.getAID());
-			        try {
-			        	 getContentManager().fillContent(msg, sendComponents);
-			        	 send(msg);
-			        }catch(CodecException ce) {
+					msg.setLanguage(codec.getName());
+					msg.setOntology(ontology.getName()); 
+					msg.addReceiver(order.getBuyer());
+					msg.setConversationId("sell-components-response");
+
+					sendComponents.setOrderID(order.getOrderID());
+					sendComponents.setPhoneComponents(order.getComponents());
+					sendComponents.setQty(order.getQuantity());
+					sendComponents.setSeller(myAgent.getAID());
+					try {
+						getContentManager().fillContent(msg, sendComponents);
+						send(msg);
+					}catch(CodecException ce) {
 						ce.printStackTrace();
 					}catch (OntologyException oe) {
 						oe.printStackTrace();
 					}catch(Exception e) {
 						e.printStackTrace();
 					}
-			        
+
 				}else {
 					continue;
 				}
 			}
 		}
 	}
-	
+
 	public class EndOfDay extends CyclicBehaviour{
-		
+
 		private ArrayList<Behaviour> behaviours;
 		public EndOfDay(Agent a, ArrayList<Behaviour> behaviours) {
 			super(a);
 			this.behaviours = behaviours;
 		}
-		
+
 		@Override
 		public void action() {
 			MessageTemplate mt = MessageTemplate.MatchContent("done");
-			 ACLMessage msg = myAgent.receive(mt);
-			 if(msg!=null) {
-				 ACLMessage doneMsg = new ACLMessage(ACLMessage.INFORM);
-				 doneMsg.setContent("done");
-				 doneMsg.addReceiver(tickerAgent);
-				 myAgent.send(doneMsg);
-				 day++;
-				 
-				 for(Behaviour behaviour : behaviours) {
-					 myAgent.removeBehaviour(behaviour);
-				 }
-				 System.out.println("SUP DONE!");
-				 myAgent.removeBehaviour(this);
-			 }else {
-				 block();
-			 }
+			ACLMessage msg = myAgent.receive(mt);
+			if(msg!=null) {
+				ACLMessage doneMsg = new ACLMessage(ACLMessage.INFORM);
+				doneMsg.setContent("done");
+				doneMsg.addReceiver(tickerAgent);
+				myAgent.send(doneMsg);
+				day++;
+
+				for(Behaviour behaviour : behaviours) {
+					myAgent.removeBehaviour(behaviour);
+				}
+				System.out.println("SUP DONE!");
+				myAgent.removeBehaviour(this);
+			}else {
+				block();
+			}
 		}
 	}
-	
-	
+
+
 
 }

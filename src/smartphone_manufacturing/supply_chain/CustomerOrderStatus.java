@@ -15,6 +15,7 @@ public class CustomerOrderStatus {
 	private HashMap<PhoneComponent, Integer> components;
 	private int componentDeliveryDate;
 	private int dayOrdered;
+	private int phonesBuilt;
 	
 	public CustomerOrderStatus(CustomerOrder order) {
 		this.setOrder(order);
@@ -84,6 +85,25 @@ public class CustomerOrderStatus {
 	public void setDayOrdered(int dayOrdered) {
 		this.dayOrdered = dayOrdered;
 	}
+
+	public int getPhonesBuilt() {
+		return phonesBuilt;
+	}
+
+	public void setPhonesBuilt(int phonesBuilt) {
+		this.phonesBuilt = phonesBuilt;
+	}
+
+	@Override
+	public String toString() {
+		return "CustomerOrderStatus [orderCompleted=" + orderCompleted + ", supplier=" + supplier.getLocalName() + ", customer="
+				+ customer.getLocalName() + ", order=" + order + ", price=" + price + ", components=" + components
+				+ ", componentDeliveryDate=" + componentDeliveryDate + ", dayOrdered=" + dayOrdered + ", phonesBuilt="
+				+ phonesBuilt + "]";
+	}
+
+	
+	
 	
 
 }

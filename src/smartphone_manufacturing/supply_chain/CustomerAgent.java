@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 import java.util.Random;
+import java.util.UUID;
 
 import jade.core.AID;
 import jade.core.Agent;
@@ -193,13 +194,8 @@ public class CustomerAgent extends Agent {
 			phone.setRAM(ram);
 			phone.setStorage(storage);
 			
-			//generate random orderID
-			byte[] array = new byte[8];
-			new Random().nextBytes(array);
-			String ID = new String(array, Charset.forName("UTF-8"));
-			
 			//set order to have generated phone and random fees
-			todaysOrder.setOrderID(ID);
+			todaysOrder.setOrderID(generateOrderID());
 			todaysOrder.setSmartPhone(phone);
 			todaysOrder.setPrice(price);
 			todaysOrder.setDaysToDeadline(dueDays);
@@ -210,6 +206,10 @@ public class CustomerAgent extends Agent {
 		}
 	}
 	
+    public static String generateOrderID() {
+    	return UUID.randomUUID().toString();
+    }
+    
 	public class requestManufacturer extends OneShotBehaviour {
 
 		private static final long serialVersionUID = 1L;
@@ -273,7 +273,7 @@ public class CustomerAgent extends Agent {
 				responseReceived = true;
 				if(msg.getPerformative() == ACLMessage.CONFIRM) {
 					//prepare message
-					//System.out.println("\n APPROVED ORDER: Customer " + myAgent.getLocalName());
+					System.out.println(getAID().getLocalName() + " order confirmed");
 					ACLMessage sendOrderMsg = new ACLMessage(ACLMessage.REQUEST);
 					sendOrderMsg.setConversationId("customer-order-sent");
 					sendOrderMsg.setLanguage(codec.getName());
@@ -345,7 +345,7 @@ public class CustomerAgent extends Agent {
 						customerPayment.setBuyer(myAgent.getAID());
 						customerPayment.setOrderID(orderID);
 						customerPayment.setPrice(price);
-						
+						System.out.println(getAID().getLocalName() + " order received");
 						getContentManager().fillContent(payment, customerPayment);
 						send(payment); // send payment to manufacturer
 						requestedOrders.remove(order); //remove order from orders
@@ -377,7 +377,7 @@ public class CustomerAgent extends Agent {
 			doneMsg.setContent("done");
 			doneMsg.addReceiver(tickerAgent);
 			myAgent.send(doneMsg);
-			System.out.println("CUSTOMER DONE!");
+			//System.out.println("CUSTOMER DONE!");
 			day++;
 		}
 	}

@@ -16,7 +16,7 @@ import jade.lang.acl.MessageTemplate;
 
 public class TickerAgent extends Agent {
 	public static final int num_days = 100;
-	
+
 	@Override
 	protected void setup() {
 		//add ticker agent to yellow pages
@@ -32,12 +32,12 @@ public class TickerAgent extends Agent {
 		catch(FIPAException e){
 			e.printStackTrace();
 		}
-		
+
 		//wait for all other agents to start
-		doWait(5000);
+		doWait(15000);
 		addBehaviour(new SynchAgentsBehaviour(this));
 	}
-	
+
 	@Override
 	protected void takeDown() {
 		//Deregister from yellow pages
@@ -48,19 +48,19 @@ public class TickerAgent extends Agent {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public class SynchAgentsBehaviour extends Behaviour{
-		
+
 		private static final long serialVersionUID = 1L;
 		private int step = 0;
 		private int numReceivedMsgs = 0; //no of finished responses from other agents
 		private int day = 0;
 		private ArrayList<AID> simulationAgents = new ArrayList<>();
-		
+
 		public SynchAgentsBehaviour(Agent a) {
 			super(a);
 		}
-		
+
 		@Override
 		public void action() {
 			switch(step) {
@@ -124,19 +124,19 @@ public class TickerAgent extends Agent {
 				}
 			}
 		}
-		
+
 		@Override
 		public boolean done() {
 			return step == 2;
 		}
-		
+
 		@Override
 		public void reset() {
 			step = 0;
 			//simulationAgents.clear();
 			numReceivedMsgs = 0;
 		}
-		
+
 		@Override
 		public int onEnd() {
 			System.out.println("End-of-day " + day + "!\n\n");

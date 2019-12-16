@@ -20,7 +20,7 @@ public class ManufacturingOntology extends BeanOntology {
 	      add("smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents");
 	      add("smartphone_manufacturing.supply_chain_ontology.actions");
 	      add("smartphone_manufacturing.supply_chain_ontology.predicates");
-	      System.out.println("ontology added");
+	      //System.out.println("ontology added");
 	    } catch (BeanOntologyException e) {
 	      e.printStackTrace();
 	    }
