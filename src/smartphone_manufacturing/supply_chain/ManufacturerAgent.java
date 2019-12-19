@@ -57,7 +57,6 @@ public class ManufacturerAgent extends Agent {
 	private AID tickerAgent;
 
 	private int day = 1;
-	//private ArrayList<CustomerOrder> requestedOrders = new ArrayList<>(); //accepted orders
 	private ArrayList<AID> customers = new ArrayList<>();
 	private HashMap<Integer, Integer> warehouse = new HashMap<>(); // components and their qty in warehouse
 	private HashMap<AID, SupplierType> suppliers = new HashMap<>();
@@ -65,7 +64,6 @@ public class ManufacturerAgent extends Agent {
 	private ArrayList<CustomerOrderStatus> approvedOrders = new ArrayList<>();
 	private ArrayList<CustomerOrderStatus> confirmedOrders = new ArrayList<>();
 	private  ArrayList<CustomerOrderStatus> gotComponents = new ArrayList<>();
-	//private List<CustomerOrderStatus> toReceive = new ArrayList<>();
 
 
 	//keep track of daily variable outcomes
@@ -478,7 +476,7 @@ public class ManufacturerAgent extends Agent {
 					break;
 				}
 				//sort confirmed orders by most prominent deadline then profit to avoid delivery costs 
-				Collections.sort(confirmedOrders, CustomerOrderStatus.deliveryDays);
+				//Collections.sort(confirmedOrders, CustomerOrderStatus.deliveryDays);
 				Collections.sort(confirmedOrders, CustomerOrderStatus.profit);
 				orderStatus = confirmedOrders.get(0);
 				supplier = orderStatus.getSupplier();
@@ -676,6 +674,7 @@ public class ManufacturerAgent extends Agent {
 			
 			switch(step) {
 			case 0:
+				//Collections.sort(confirmedOrders, CustomerOrderStatus.deliveryDays);
 				Collections.sort(confirmedOrders, CustomerOrderStatus.profit);
 				for(CustomerOrderStatus status: gotComponents) {
 					if(todaysPhoneQuantity + status.getOrder().getQuantity() > 50) {
@@ -726,7 +725,6 @@ public class ManufacturerAgent extends Agent {
 					}
 
 				}
-				//System.out.println("WH AFTER: " + warehouse);
 				step++;
 
 				//receive payment from customer

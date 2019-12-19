@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<class-diagram version="1.2.3" icons="false" always-add-relationships="false" generalizations="true" realizations="true" 
+  associations="true" dependencies="false" nesting-relationships="true" router="FAN">  
+  <class id="1" language="java" name="smartphone_manufacturing.supply_chain_ontology.concepts.SmartPhone" 
+    project="multi_agent_systems" 
+    file="/multi_agent_systems/src/smartphone_manufacturing/supply_chain_ontology/concepts/SmartPhone.java" 
+    binary="false" corner="BOTTOM_RIGHT">    
+    <position height="269" width="306" x="981" y="37"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="2" language="java" name="smartphone_manufacturing.supply_chain_ontology.concepts.SmallPhone" 
+    project="multi_agent_systems" 
+    file="/multi_agent_systems/src/smartphone_manufacturing/supply_chain_ontology/concepts/SmallPhone.java" 
+    binary="false" corner="BOTTOM_RIGHT">    
+    <position height="133" width="279" x="794" y="346"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="3" language="java" name="smartphone_manufacturing.supply_chain_ontology.concepts.Phablet" 
+    project="multi_agent_systems" 
+    file="/multi_agent_systems/src/smartphone_manufacturing/supply_chain_ontology/concepts/Phablet.java" binary="false" 
+    corner="BOTTOM_RIGHT">    
+    <position height="167" width="279" x="475" y="346"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="4" language="java" name="smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents.RAM" 
+    project="multi_agent_systems" 
+    file="/multi_agent_systems/src/smartphone_manufacturing/supply_chain_ontology/concepts/smartPhoneComponents/RAM.java" 
+    binary="false" corner="BOTTOM_RIGHT">    
+    <position height="218" width="392" x="1113" y="346"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="5" language="java" 
+    name="smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents.PhabletScreen" 
+    project="multi_agent_systems" 
+    file="/multi_agent_systems/src/smartphone_manufacturing/supply_chain_ontology/concepts/smartPhoneComponents/PhabletScreen.java" 
+    binary="false" corner="BOTTOM_RIGHT">    
+    <position height="133" width="392" x="43" y="604"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="6" language="java" 
+    name="smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents.PhabletBattery" 
+    project="multi_agent_systems" 
+    file="/multi_agent_systems/src/smartphone_manufacturing/supply_chain_ontology/concepts/smartPhoneComponents/PhabletBattery.java" 
+    binary="false" corner="BOTTOM_RIGHT">    
+    <position height="133" width="392" x="475" y="604"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="7" language="java" 
+    name="smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents.Storage" 
+    project="multi_agent_systems" 
+    file="/multi_agent_systems/src/smartphone_manufacturing/supply_chain_ontology/concepts/smartPhoneComponents/Storage.java" 
+    binary="false" corner="BOTTOM_RIGHT">    
+    <position height="201" width="392" x="1545" y="346"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="8" language="java" 
+    name="smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents.SmallBattery" 
+    project="multi_agent_systems" 
+    file="/multi_agent_systems/src/smartphone_manufacturing/supply_chain_ontology/concepts/smartPhoneComponents/SmallBattery.java" 
+    binary="false" corner="BOTTOM_RIGHT">    
+    <position height="133" width="392" x="1339" y="604"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="9" language="java" 
+    name="smartphone_manufacturing.supply_chain_ontology.concepts.smartPhoneComponents.SmallScreen" 
+    project="multi_agent_systems" 
+    file="/multi_agent_systems/src/smartphone_manufacturing/supply_chain_ontology/concepts/smartPhoneComponents/SmallScreen.java" 
+    binary="false" corner="BOTTOM_RIGHT">    
+    <position height="133" width="392" x="907" y="604"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <class id="10" language="java" name="smartphone_manufacturing.supply_chain_ontology.concepts.PhoneComponent" 
+    project="multi_agent_systems" 
+    file="/multi_agent_systems/src/smartphone_manufacturing/supply_chain_ontology/concepts/PhoneComponent.java" 
+    binary="false" corner="BOTTOM_RIGHT">    
+    <position height="133" width="279" x="1329" y="37"/>    
+    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+      sort-features="false" accessors="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
+      <operations public="true" package="true" protected="true" private="true" static="true"/>    
+    </display>  
+  </class>  
+  <generalization id="11">    
+    <end type="SOURCE" refId="4"/>    
+    <end type="TARGET" refId="10"/>  
+  </generalization>  
+  <association id="12">    
+    <end type="SOURCE" refId="3" navigable="false">      
+      <attribute id="13" name="battery">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </attribute>      
+      <multiplicity id="14" minimum="0" maximum="1">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </multiplicity>    
+    </end>    
+    <end type="TARGET" refId="6" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <generalization id="15">    
+    <end type="SOURCE" refId="2"/>    
+    <end type="TARGET" refId="1"/>  
+  </generalization>  
+  <generalization id="16">    
+    <end type="SOURCE" refId="3"/>    
+    <end type="TARGET" refId="1"/>  
+  </generalization>  
+  <association id="17">    
+    <end type="SOURCE" refId="1" navigable="false">      
+      <attribute id="18" name="ram">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </attribute>      
+      <multiplicity id="19" minimum="0" maximum="1">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </multiplicity>    
+    </end>    
+    <end type="TARGET" refId="4" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="20">    
+    <end type="SOURCE" refId="2" navigable="false">      
+      <attribute id="21" name="screen">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </attribute>      
+      <multiplicity id="22" minimum="0" maximum="1">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </multiplicity>    
+    </end>    
+    <end type="TARGET" refId="9" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="23">    
+    <end type="SOURCE" refId="2" navigable="false">      
+      <attribute id="24" name="battery">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </attribute>      
+      <multiplicity id="25" minimum="0" maximum="1">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </multiplicity>    
+    </end>    
+    <end type="TARGET" refId="8" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="26">    
+    <end type="SOURCE" refId="3" navigable="false">      
+      <attribute id="27" name="screen">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </attribute>      
+      <multiplicity id="28" minimum="0" maximum="1">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </multiplicity>    
+    </end>    
+    <end type="TARGET" refId="5" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <generalization id="29">    
+    <end type="SOURCE" refId="7"/>    
+    <end type="TARGET" refId="10"/>  
+  </generalization>  
+  <association id="30">    
+    <end type="SOURCE" refId="1" navigable="false">      
+      <attribute id="31" name="storage">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </attribute>      
+      <multiplicity id="32" minimum="0" maximum="1">        
+        <position height="0" width="0" x="0" y="0"/>      
+      </multiplicity>    
+    </end>    
+    <end type="TARGET" refId="7" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <classifier-display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
+    sort-features="false" accessors="true" visibility="true">    
+    <attributes public="true" package="true" protected="true" private="true" static="true"/>    
+    <operations public="true" package="true" protected="true" private="true" static="true"/>  
+  </classifier-display>  
+  <association-display labels="true" multiplicity="true"/>
+</class-diagram>
