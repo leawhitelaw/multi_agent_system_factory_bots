@@ -117,7 +117,7 @@ public class CustomerAgent extends Agent {
 					
 					dailyActivity.addSubBehaviour(new generateNewOrder(myAgent));
 					dailyActivity.addSubBehaviour(new requestManufacturer(myAgent));
-					dailyActivity.addSubBehaviour(new sendOrderAction(myAgent));
+					dailyActivity.addSubBehaviour(new sendOrder(myAgent));
 					dailyActivity.addSubBehaviour(new EndOfDay(myAgent));
 					
 					myAgent.addBehaviour(dailyActivity);
@@ -154,7 +154,6 @@ public class CustomerAgent extends Agent {
 			PhabletScreen phabScreen = new PhabletScreen();
 			
 			// random order specification generator
-			//Random rand = new Random();
 			double rand = Math.random();
 			int orderQty = (int) Math.floor(1 + 50 * (rand));
 			rand = Math.random();
@@ -245,6 +244,7 @@ public class CustomerAgent extends Agent {
 			requestManufacture.setOrder(todaysOrder);
 			try {
 				getContentManager().fillContent(requestMsg, requestManufacture);
+				//send query
 				send(requestMsg);
 			}catch(CodecException ce) {
 				ce.printStackTrace();
@@ -254,10 +254,10 @@ public class CustomerAgent extends Agent {
 		}
 	}
 	
-	public class sendOrderAction extends Behaviour {
+	public class sendOrder extends Behaviour {
 		private static final long serialVersionUID = 1L;
 
-		public sendOrderAction(Agent a) {
+		public sendOrder(Agent a) {
 			super(a);
 		}
 		
@@ -273,7 +273,6 @@ public class CustomerAgent extends Agent {
 				responseReceived = true;
 				if(msg.getPerformative() == ACLMessage.CONFIRM) {
 					//prepare message
-					//System.out.println(getAID().getLocalName() + " order confirmed");
 					ACLMessage sendOrderMsg = new ACLMessage(ACLMessage.REQUEST);
 					sendOrderMsg.setConversationId("customer-order-sent");
 					sendOrderMsg.setLanguage(codec.getName());

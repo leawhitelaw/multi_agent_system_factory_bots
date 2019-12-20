@@ -18,6 +18,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -364,7 +366,7 @@ public class ManufacturerAgent extends Agent {
 
 
 						ACLMessage reply = msg.createReply();
-						if(profit > 0 && orderStatus.getOrder().getDaysToDeadline() > 1) {
+						if(profit > 0 && orderStatus.getOrder().getDaysToDeadline() > 1 && gotComponents.size() < 3) {
 							orderStatus.setSupplier(quickestSupplier);
 							orderStatus.setPrice(cost);
 							orderStatus.setDayOrdered(day);
@@ -686,7 +688,6 @@ public class ManufacturerAgent extends Agent {
 					for(PhoneComponent component : phoneComponents) {
 						if(!warehouse.containsKey(component.hashCode()) || (warehouse.containsKey(component.hashCode()) 
 								&& warehouse.get(component.hashCode()) < quantity)){
-							System.out.println("REJECTED");
 							warehouseHasComponents = false;
 							break; //stop above being overwritten
 						}
@@ -785,12 +786,10 @@ public class ManufacturerAgent extends Agent {
 			//calculate warehouse totals
 			for(Integer component : warehouse.keySet()) {
 				int cost = warehouse.get(component) * 5;
-//				System.out.println("added cost " + warehouse.get(component));
-//				System.out.println("added component " + component);
 				storageCost += cost;
 			}
 
-			//calculate late fees !!!!!! check
+			//calculate late fees
 			for(CustomerOrderStatus status : orderList) {
 				int deadlineDay = status.getDayOrdered() + status.getOrder().getDaysToDeadline();
 				if(status.getOrderCompleted()!=true && day > deadlineDay) {
@@ -805,7 +804,6 @@ public class ManufacturerAgent extends Agent {
 			//remove finished order from current order list
 			for(CustomerOrderStatus status : orderList) {
 				if(status.getOrderCompleted()==true) {
-					//orderList.remove(status);
 					confirmedOrders.remove(status);
 				}
 			}
@@ -817,7 +815,6 @@ public class ManufacturerAgent extends Agent {
 			}
 
 			System.out.printf("\n Day %d, \nTodays profit = £%d.00, \nTotal profit = £%d.00\n", day, todaysProfit, totalProfit );
-			//System.out.println("Phones built: " + todaysPhoneQuantity);
 		}
 	}
 

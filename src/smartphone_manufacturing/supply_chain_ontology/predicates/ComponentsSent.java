@@ -23,7 +23,7 @@ public class ComponentsSent implements Predicate {
 		this.seller = seller;
 	}
 	
-	//@Slot(mandatory = true)
+	@Slot(mandatory = true)
 	public String getOrderID() {
 		return orderID;
 	}

@@ -71,11 +71,9 @@ public class SupplierAgent extends Agent{
 		Object[] args = getArguments();
 		if (args != null && args.length > 0) {
 			if((int)args[0] == 1) {
-				//System.out.println("SUP ARGS = 1!");
 				phoneComponents = SupplierDetails.getSupplierOneComponents();
 				deliveryDays = SupplierDetails.getSupplierOneDelivery();
 			}else if((int)args[0] == 2) {
-				//System.out.println("SUP ARGS = 2!");
 				phoneComponents = SupplierDetails.getSupplierTwoComponents();
 				deliveryDays = SupplierDetails.getSupplierTwoDelivery();
 			}

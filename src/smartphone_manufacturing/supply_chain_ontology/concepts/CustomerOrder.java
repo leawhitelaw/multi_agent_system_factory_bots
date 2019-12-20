@@ -19,6 +19,7 @@ public class CustomerOrder implements Concept{
 	private int daysToDeadline;
 	private int perDayPenalty;
 	
+	@Slot(mandatory = true)
 	public String getOrderID() {
 		return orderID;
 	}

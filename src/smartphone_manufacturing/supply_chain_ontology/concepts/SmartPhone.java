@@ -48,6 +48,7 @@ public class SmartPhone {
 		this.screen = screen;
 	}
 	
+	@Slot(mandatory = true)
 	public ArrayList<PhoneComponent> getPhoneComponents(){
 		ArrayList<PhoneComponent> components = new ArrayList<>();
 		components.add(battery);
@@ -57,10 +58,5 @@ public class SmartPhone {
 		return components;
 	}
 	
-//	@Override
-//	public String toString() {
-//		String string = String.format("RAM: %d, Storage: %d, Screen: %s, Battery: %s", ram, storage, screen, battery);
-//		return string;
-//	}
 
 }

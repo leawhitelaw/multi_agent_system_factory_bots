@@ -14,7 +14,7 @@ private static final long serialVersionUID =1L;
 	private int size = 7;
 	
 	@Slot(mandatory = true)
-	public int getBatterySize() {
+	public int getScreenSize() {
 		return size;
 	}
 

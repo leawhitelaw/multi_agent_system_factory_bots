@@ -8,7 +8,7 @@ public class Screen extends PhoneComponent {
 	private int size;
 	
 	@Slot(mandatory = true)
-	public int getBatterySize() {
+	public int getScreenSize() {
 		return size;
 	}
 }

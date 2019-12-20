@@ -16,7 +16,7 @@
     project="multi_agent_systems" 
     file="/multi_agent_systems/src/smartphone_manufacturing/supply_chain_ontology/concepts/SmallPhone.java" 
     binary="false" corner="BOTTOM_RIGHT">    
-    <position height="133" width="279" x="794" y="346"/>    
+    <position height="-1" width="-1" x="903" y="424"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -27,7 +27,7 @@
     project="multi_agent_systems" 
     file="/multi_agent_systems/src/smartphone_manufacturing/supply_chain_ontology/concepts/Phablet.java" binary="false" 
     corner="BOTTOM_RIGHT">    
-    <position height="167" width="279" x="475" y="346"/>    
+    <position height="-1" width="-1" x="587" y="426"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -38,7 +38,7 @@
     project="multi_agent_systems" 
     file="/multi_agent_systems/src/smartphone_manufacturing/supply_chain_ontology/concepts/smartPhoneComponents/RAM.java" 
     binary="false" corner="BOTTOM_RIGHT">    
-    <position height="218" width="392" x="1113" y="346"/>    
+    <position height="-1" width="-1" x="1360" y="448"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -50,7 +50,7 @@
     project="multi_agent_systems" 
     file="/multi_agent_systems/src/smartphone_manufacturing/supply_chain_ontology/concepts/smartPhoneComponents/PhabletScreen.java" 
     binary="false" corner="BOTTOM_RIGHT">    
-    <position height="133" width="392" x="43" y="604"/>    
+    <position height="-1" width="-1" x="210" y="670"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -62,7 +62,7 @@
     project="multi_agent_systems" 
     file="/multi_agent_systems/src/smartphone_manufacturing/supply_chain_ontology/concepts/smartPhoneComponents/PhabletBattery.java" 
     binary="false" corner="BOTTOM_RIGHT">    
-    <position height="133" width="392" x="475" y="604"/>    
+    <position height="-1" width="-1" x="609" y="670"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -74,7 +74,7 @@
     project="multi_agent_systems" 
     file="/multi_agent_systems/src/smartphone_manufacturing/supply_chain_ontology/concepts/smartPhoneComponents/Storage.java" 
     binary="false" corner="BOTTOM_RIGHT">    
-    <position height="201" width="392" x="1545" y="346"/>    
+    <position height="-1" width="-1" x="1778" y="411"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -86,7 +86,7 @@
     project="multi_agent_systems" 
     file="/multi_agent_systems/src/smartphone_manufacturing/supply_chain_ontology/concepts/smartPhoneComponents/SmallBattery.java" 
     binary="false" corner="BOTTOM_RIGHT">    
-    <position height="133" width="392" x="1339" y="604"/>    
+    <position height="-1" width="-1" x="1415" y="669"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
@@ -98,110 +98,91 @@
     project="multi_agent_systems" 
     file="/multi_agent_systems/src/smartphone_manufacturing/supply_chain_ontology/concepts/smartPhoneComponents/SmallScreen.java" 
     binary="false" corner="BOTTOM_RIGHT">    
-    <position height="133" width="392" x="907" y="604"/>    
+    <position height="-1" width="-1" x="1014" y="670"/>    
     <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
       sort-features="false" accessors="true" visibility="true">      
       <attributes public="true" package="true" protected="true" private="true" static="true"/>      
       <operations public="true" package="true" protected="true" private="true" static="true"/>    
     </display>  
   </class>  
-  <class id="10" language="java" name="smartphone_manufacturing.supply_chain_ontology.concepts.PhoneComponent" 
-    project="multi_agent_systems" 
-    file="/multi_agent_systems/src/smartphone_manufacturing/supply_chain_ontology/concepts/PhoneComponent.java" 
-    binary="false" corner="BOTTOM_RIGHT">    
-    <position height="133" width="279" x="1329" y="37"/>    
-    <display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 
-      sort-features="false" accessors="true" visibility="true">      
-      <attributes public="true" package="true" protected="true" private="true" static="true"/>      
-      <operations public="true" package="true" protected="true" private="true" static="true"/>    
-    </display>  
-  </class>  
+  <generalization id="10">    
+    <end type="SOURCE" refId="2"/>    
+    <end type="TARGET" refId="1"/>  
+  </generalization>  
   <generalization id="11">    
-    <end type="SOURCE" refId="4"/>    
-    <end type="TARGET" refId="10"/>  
+    <end type="SOURCE" refId="3"/>    
+    <end type="TARGET" refId="1"/>  
   </generalization>  
   <association id="12">    
     <end type="SOURCE" refId="3" navigable="false">      
       <attribute id="13" name="battery">        
-        <position height="0" width="0" x="0" y="0"/>      
+        <position height="0" width="0" x="-62" y="0"/>      
       </attribute>      
       <multiplicity id="14" minimum="0" maximum="1">        
-        <position height="0" width="0" x="0" y="0"/>      
+        <position height="0" width="0" x="-62" y="0"/>      
       </multiplicity>    
     </end>    
     <end type="TARGET" refId="6" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
-  <generalization id="15">    
-    <end type="SOURCE" refId="2"/>    
-    <end type="TARGET" refId="1"/>  
-  </generalization>  
-  <generalization id="16">    
-    <end type="SOURCE" refId="3"/>    
-    <end type="TARGET" refId="1"/>  
-  </generalization>  
-  <association id="17">    
-    <end type="SOURCE" refId="1" navigable="false">      
-      <attribute id="18" name="ram">        
-        <position height="0" width="0" x="0" y="0"/>      
-      </attribute>      
-      <multiplicity id="19" minimum="0" maximum="1">        
-        <position height="0" width="0" x="0" y="0"/>      
-      </multiplicity>    
-    </end>    
-    <end type="TARGET" refId="4" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="20">    
-    <end type="SOURCE" refId="2" navigable="false">      
-      <attribute id="21" name="screen">        
-        <position height="0" width="0" x="0" y="0"/>      
-      </attribute>      
-      <multiplicity id="22" minimum="0" maximum="1">        
-        <position height="0" width="0" x="0" y="0"/>      
-      </multiplicity>    
-    </end>    
-    <end type="TARGET" refId="9" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="23">    
-    <end type="SOURCE" refId="2" navigable="false">      
-      <attribute id="24" name="battery">        
-        <position height="0" width="0" x="0" y="0"/>      
-      </attribute>      
-      <multiplicity id="25" minimum="0" maximum="1">        
-        <position height="0" width="0" x="0" y="0"/>      
-      </multiplicity>    
-    </end>    
-    <end type="TARGET" refId="8" navigable="true"/>    
-    <display labels="true" multiplicity="true"/>  
-  </association>  
-  <association id="26">    
+  <association id="15">    
     <end type="SOURCE" refId="3" navigable="false">      
-      <attribute id="27" name="screen">        
-        <position height="0" width="0" x="0" y="0"/>      
+      <attribute id="16" name="screen">        
+        <position height="0" width="0" x="-29" y="0"/>      
       </attribute>      
-      <multiplicity id="28" minimum="0" maximum="1">        
-        <position height="0" width="0" x="0" y="0"/>      
+      <multiplicity id="17" minimum="0" maximum="1">        
+        <position height="0" width="0" x="-29" y="0"/>      
       </multiplicity>    
     </end>    
     <end type="TARGET" refId="5" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
-  <generalization id="29">    
-    <end type="SOURCE" refId="7"/>    
-    <end type="TARGET" refId="10"/>  
-  </generalization>  
-  <association id="30">    
-    <end type="SOURCE" refId="1" navigable="false">      
-      <attribute id="31" name="storage">        
-        <position height="0" width="0" x="0" y="0"/>      
+  <association id="18">    
+    <end type="SOURCE" refId="2" navigable="false">      
+      <attribute id="19" name="battery">        
+        <position height="0" width="0" x="-120" y="-1"/>      
       </attribute>      
-      <multiplicity id="32" minimum="0" maximum="1">        
-        <position height="0" width="0" x="0" y="0"/>      
+      <multiplicity id="20" minimum="0" maximum="1">        
+        <position height="0" width="0" x="-120" y="-1"/>      
+      </multiplicity>    
+    </end>    
+    <end type="TARGET" refId="8" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="21">    
+    <end type="SOURCE" refId="1" navigable="false">      
+      <attribute id="22" name="ram">        
+        <position height="0" width="0" x="51" y="-7"/>      
+      </attribute>      
+      <multiplicity id="23" minimum="0" maximum="1">        
+        <position height="0" width="0" x="51" y="-7"/>      
+      </multiplicity>    
+    </end>    
+    <end type="TARGET" refId="4" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="24">    
+    <end type="SOURCE" refId="1" navigable="false">      
+      <attribute id="25" name="storage">        
+        <position height="0" width="0" x="37" y="-35"/>      
+      </attribute>      
+      <multiplicity id="26" minimum="0" maximum="1">        
+        <position height="0" width="0" x="37" y="-35"/>      
       </multiplicity>    
     </end>    
     <end type="TARGET" refId="7" navigable="true"/>    
+    <display labels="true" multiplicity="true"/>  
+  </association>  
+  <association id="27">    
+    <end type="SOURCE" refId="2" navigable="false">      
+      <attribute id="28" name="screen">        
+        <position height="0" width="0" x="-89" y="0"/>      
+      </attribute>      
+      <multiplicity id="29" minimum="0" maximum="1">        
+        <position height="0" width="0" x="-89" y="0"/>      
+      </multiplicity>    
+    </end>    
+    <end type="TARGET" refId="9" navigable="true"/>    
     <display labels="true" multiplicity="true"/>  
   </association>  
   <classifier-display autosize="true" stereotype="true" package="true" initial-value="false" signature="true" 

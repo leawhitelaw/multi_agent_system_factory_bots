@@ -14,7 +14,7 @@ public class SmallScreen extends Screen {
 	private int size = 5;
 	
 	@Slot(mandatory = true)
-	public int getBatterySize() {
+	public int getScreenSize() {
 		return size;
 	}
 	
